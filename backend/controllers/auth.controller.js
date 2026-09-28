@@ -1,61 +1,49 @@
 import bcrypt from 'bcryptjs';
 import genToken from '../utils/token.js';
 import User from '../models/user.model.js';
+import admin from '../config/firebase.js';
 
+/* ── Sign Up ─────────────────────────────────────────────── */
 export const signUp = async (req, res) => {
   try {
     const { fullName, email, password, mobile, role } = req.body;
 
-    // Basic presence check
     if (!fullName || !email || !password || !mobile || !role) {
       return res.status(400).json({ message: 'All fields are required.' });
     }
 
-    // Check duplicate
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: 'An account with this email already exists.' });
     }
 
-    // Password length
     if (password.length < 6) {
       return res.status(400).json({ message: 'Password must be at least 6 characters.' });
     }
 
-    // Mobile length — strip non-digits before checking
     const digitsOnly = mobile.replace(/\D/g, '');
     if (digitsOnly.length < 11) {
       return res.status(400).json({ message: 'Mobile number must be at least 11 digits.' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = await User.create({
-      fullName,
-      email,
-      role,
-      mobile,
-      password: hashedPassword,
-    });
+    const newUser = await User.create({ fullName, email, role, mobile, password: hashedPassword });
 
     const token = await genToken(newUser._id);
-
     res.cookie('token', token, {
-      secure: false,
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
+      secure: false, sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true,
     });
 
-    const { password: _pw, ...userWithoutPassword } = newUser.toObject();
-    return res.status(201).json(userWithoutPassword);
-
+    const { password: _pw, ...user } = newUser.toObject();
+    return res.status(201).json(user);
   } catch (error) {
     console.error('signUp error:', error);
     return res.status(500).json({ message: 'Server error. Please try again.' });
   }
 };
 
+/* ── Sign In ─────────────────────────────────────────────── */
 export const signIn = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -75,29 +63,82 @@ export const signIn = async (req, res) => {
     }
 
     const token = await genToken(user._id);
-
     res.cookie('token', token, {
-      secure: false,
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
+      secure: false, sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true,
     });
 
     const { password: _pw, ...userWithoutPassword } = user.toObject();
     return res.status(200).json(userWithoutPassword);
-
   } catch (error) {
     console.error('signIn error:', error);
     return res.status(500).json({ message: 'Server error. Please try again.' });
   }
 };
 
+/* ── Sign Out ────────────────────────────────────────────── */
 export const signOut = async (req, res) => {
   try {
     res.clearCookie('token');
     return res.status(200).json({ message: 'Logged out successfully.' });
   } catch (error) {
     console.error('signOut error:', error);
+    return res.status(500).json({ message: 'Server error. Please try again.' });
+  }
+};
+
+/* ── Google Sign In ──────────────────────────────────────────
+   POST /api/auth/google
+   Body: { idToken, role? }
+   Verifies Firebase ID token, creates or finds user in MongoDB.
+──────────────────────────────────────────────────────────── */
+export const googleSignIn = async (req, res) => {
+  try {
+    const { idToken, role } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ message: 'Firebase ID token is required.' });
+    }
+
+    // Verify the token with Firebase Admin
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    const { uid, email, name, picture } = decoded;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // New user via Google — role is required on first sign-in
+      if (!role) {
+        return res.status(400).json({
+          message: 'Please select a role to complete sign-up.',
+          requiresRole: true,
+        });
+      }
+
+      user = await User.create({
+        fullName: name || email.split('@')[0],
+        email,
+        mobile: '00000000000', // placeholder — user can update later
+        role,
+        googleUid: uid,
+        avatar: picture || '',
+        password: undefined, // Google users have no password
+      });
+    }
+
+    const token = await genToken(user._id);
+    res.cookie('token', token, {
+      secure: false, sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true,
+    });
+
+    const { password: _pw, ...userWithoutPassword } = user.toObject();
+    return res.status(200).json(userWithoutPassword);
+  } catch (error) {
+    console.error('googleSignIn error:', error);
+    if (error.code === 'auth/argument-error' || error.code === 'auth/id-token-expired') {
+      return res.status(401).json({ message: 'Invalid or expired Google token.' });
+    }
     return res.status(500).json({ message: 'Server error. Please try again.' });
   }
 };

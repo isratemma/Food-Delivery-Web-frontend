@@ -23,6 +23,14 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'owner', 'deliveryBoy'],
       required: true,
     },
+    googleUid: {
+      type: String,
+      default: null,
+    },
+    avatar: {
+      type: String,
+      default: '',
+    },
     resetToken: {
       type: String,
       default: null,
