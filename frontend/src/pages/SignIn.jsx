@@ -61,7 +61,7 @@ const SignIn = () => {
         {/* Google */}
         <button
           type="button"
-          onClick={() => { window.location.href = 'http://localhost:5000/api/auth/google'; }}
+          onClick={() => { window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`; }}
           className="w-full flex items-center justify-center gap-2.5 border border-[#DCDCDC] rounded-lg px-4 py-2.5 text-sm text-[#0F172A] bg-white hover:bg-[#F1F1F1] transition-colors mb-4"
         >
           <svg width="16" height="16" viewBox="0 0 48 48">
