@@ -59,10 +59,9 @@ const SignIn = () => {
       setGLoading(true);
       setApiError('');
       const result = await signInWithPopup(auth, googleProvider);
-      const idToken = await result.user.getIdToken();
-      const res = await googleSignInApi({ idToken });
+      const { email, displayName, photoURL, uid } = result.user;
+      const res = await googleSignInApi({ email, fullName: displayName, avatar: photoURL, googleUid: uid });
       if (res.data?.requiresRole) {
-        // Shouldn't happen on sign-in but handle gracefully
         navigate('/signup');
         return;
       }

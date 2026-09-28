@@ -121,8 +121,8 @@ const SignUp = () => {
       setGLoading(true);
       setApiError('');
       const result = await signInWithPopup(auth, googleProvider);
-      const idToken = await result.user.getIdToken();
-      await googleSignInApi({ idToken, role: form.role });
+      const { email, displayName, photoURL, uid } = result.user;
+      await googleSignInApi({ email, fullName: displayName, avatar: photoURL, googleUid: uid, role: form.role });
       navigate('/dashboard');
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') return;

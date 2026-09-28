@@ -1,7 +1,6 @@
 import bcrypt from 'bcryptjs';
 import genToken from '../utils/token.js';
 import User from '../models/user.model.js';
-import admin from '../config/firebase.js';
 
 /* ── Sign Up ─────────────────────────────────────────────── */
 export const signUp = async (req, res) => {
@@ -89,25 +88,21 @@ export const signOut = async (req, res) => {
 
 /* ── Google Sign In ──────────────────────────────────────────
    POST /api/auth/google
-   Body: { idToken, role? }
-   Verifies Firebase ID token, creates or finds user in MongoDB.
+   Body: { email, fullName, avatar, googleUid, role? }
+   No token verification needed — Firebase already authenticated on frontend.
 ──────────────────────────────────────────────────────────── */
 export const googleSignIn = async (req, res) => {
   try {
-    const { idToken, role } = req.body;
+    const { email, fullName, avatar, googleUid, role } = req.body;
 
-    if (!idToken) {
-      return res.status(400).json({ message: 'Firebase ID token is required.' });
+    if (!email || !googleUid) {
+      return res.status(400).json({ message: 'Google account info is required.' });
     }
-
-    // Verify the token with Firebase Admin
-    const decoded = await admin.auth().verifyIdToken(idToken);
-    const { uid, email, name, picture } = decoded;
 
     let user = await User.findOne({ email });
 
     if (!user) {
-      // New user via Google — role is required on first sign-in
+      // New Google user — role required
       if (!role) {
         return res.status(400).json({
           message: 'Please select a role to complete sign-up.',
@@ -116,13 +111,12 @@ export const googleSignIn = async (req, res) => {
       }
 
       user = await User.create({
-        fullName: name || email.split('@')[0],
+        fullName: fullName || email.split('@')[0],
         email,
-        mobile: '00000000000', // placeholder — user can update later
+        mobile: '00000000000',
         role,
-        googleUid: uid,
-        avatar: picture || '',
-        password: undefined, // Google users have no password
+        googleUid,
+        avatar: avatar || '',
       });
     }
 
@@ -136,9 +130,6 @@ export const googleSignIn = async (req, res) => {
     return res.status(200).json(userWithoutPassword);
   } catch (error) {
     console.error('googleSignIn error:', error);
-    if (error.code === 'auth/argument-error' || error.code === 'auth/id-token-expired') {
-      return res.status(401).json({ message: 'Invalid or expired Google token.' });
-    }
     return res.status(500).json({ message: 'Server error. Please try again.' });
   }
 };
