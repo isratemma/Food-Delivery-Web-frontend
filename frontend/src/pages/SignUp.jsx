@@ -35,8 +35,8 @@ const Field = ({ label, error, children }) => (
 );
 
 const inputCls = (err) =>
-  `w-full border rounded-lg px-3 py-2.5 text-sm text-[#0F172A] placeholder-[#CBD5E1] outline-none transition-colors
-   ${err ? 'border-red-400' : 'border-[#E2E8F0] focus:border-[#4F46E5]'}`;
+  `w-full border rounded-lg px-3 py-2.5 text-sm text-[#0F172A] placeholder-[#BBBBBB] bg-white outline-none transition-colors
+   ${err ? 'border-red-400' : 'border-[#DCDCDC] focus:border-[#5b3256]'}`;
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -66,16 +66,16 @@ const SignUp = () => {
 
   const validate = () => {
     const e = {};
-    if (!form.fullName.trim())  e.fullName = 'Required';
+    if (!form.fullName.trim()) e.fullName = 'Required';
     else if (form.fullName.trim().length < 3) e.fullName = 'At least 3 characters';
-    if (!form.email.trim())     e.email = 'Required';
+    if (!form.email.trim()) e.email = 'Required';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email';
-    if (!form.mobile.trim())    e.mobile = 'Required';
-    else if (form.mobile.replace(/\D/g,'').length < 11) e.mobile = 'At least 11 digits';
-    if (!form.role)             e.role = 'Select a role';
-    if (!form.password)         e.password = 'Required';
+    if (!form.mobile.trim()) e.mobile = 'Required';
+    else if (form.mobile.replace(/\D/g, '').length < 11) e.mobile = 'At least 11 digits';
+    if (!form.role) e.role = 'Select a role';
+    if (!form.password) e.password = 'Required';
     else if (form.password.length < 6) e.password = 'At least 6 characters';
-    if (!form.confirmPassword)  e.confirmPassword = 'Required';
+    if (!form.confirmPassword) e.confirmPassword = 'Required';
     else if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match';
     return e;
   };
@@ -100,12 +100,12 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4 py-12">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center bg-[#F1F1F1] px-4 py-12">
+      <div className="w-full max-w-sm bg-[#F7F7F7] border border-[#E4E4E4] rounded-2xl px-8 py-10">
 
         {/* Brand */}
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#4F46E5] mb-4">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#5b3256] mb-4">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M3 21H21M3 18H21M6 18V9M10 18V9M14 18V9M18 18V9M2 9L12 3L22 9"
                 stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -119,7 +119,7 @@ const SignUp = () => {
         <button
           type="button"
           onClick={() => { window.location.href = 'http://localhost:5000/api/auth/google'; }}
-          className="w-full flex items-center justify-center gap-2.5 border border-[#E2E8F0] rounded-lg px-4 py-2.5 text-sm text-[#0F172A] bg-white hover:bg-[#F8FAFC] transition-colors mb-4"
+          className="w-full flex items-center justify-center gap-2.5 border border-[#DCDCDC] rounded-lg px-4 py-2.5 text-sm text-[#0F172A] bg-white hover:bg-[#F1F1F1] transition-colors mb-4"
         >
           <svg width="16" height="16" viewBox="0 0 48 48">
             <path fill="#EA4335" d="M24 9.5c3.14 0 5.95 1.08 8.17 2.85l6.08-6.08C34.46 3.05 29.5 1 24 1 14.82 1 7.07 6.48 3.65 14.27l7.12 5.53C12.47 13.59 17.8 9.5 24 9.5z"/>
@@ -132,9 +132,9 @@ const SignUp = () => {
 
         {/* Divider */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 h-px bg-[#E2E8F0]" />
+          <div className="flex-1 h-px bg-[#DCDCDC]" />
           <span className="text-xs text-[#94A3B8]">or</span>
-          <div className="flex-1 h-px bg-[#E2E8F0]" />
+          <div className="flex-1 h-px bg-[#DCDCDC]" />
         </div>
 
         {/* Success */}
@@ -155,7 +155,7 @@ const SignUp = () => {
 
           {/* Role buttons */}
           <Field label="I am a…" error={errors.role}>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2 mt-1">
               {ROLES.map(({ value, label, icon: Icon }) => {
                 const active = form.role === value;
                 return (
@@ -163,8 +163,8 @@ const SignUp = () => {
                     key={value} type="button" onClick={() => pickRole(value)}
                     className={`flex flex-col items-center gap-1.5 rounded-lg border py-3 text-xs font-medium transition-colors
                       ${active
-                        ? 'border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]'
-                        : 'border-[#E2E8F0] bg-white text-[#64748B] hover:border-[#C7D2FE]'
+                        ? 'border-[#5b3256] bg-[#f5eef4] text-[#5b3256]'
+                        : 'border-[#DCDCDC] bg-white text-[#64748B] hover:border-[#5b3256]'
                       }`}
                   >
                     <Icon size={17} />
@@ -204,11 +204,10 @@ const SignUp = () => {
                 value={form.password} onChange={handle}
                 className={inputCls(errors.password) + ' pr-10'} />
               <button type="button" onClick={() => setShowPwd((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]">
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#5b3256] transition-colors">
                 {showPwd ? <HiOutlineEyeSlash size={16} /> : <HiOutlineEye size={16} />}
               </button>
             </div>
-            {/* Strength bar */}
             {strength && (
               <div className="mt-2 space-y-1">
                 <div className="h-1 w-full bg-[#E2E8F0] rounded-full overflow-hidden">
@@ -230,7 +229,7 @@ const SignUp = () => {
                 value={form.confirmPassword} onChange={handle}
                 className={inputCls(errors.confirmPassword) + ' pr-10'} />
               <button type="button" onClick={() => setShowCfm((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]">
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#5b3256] transition-colors">
                 {showCfm ? <HiOutlineEyeSlash size={16} /> : <HiOutlineEye size={16} />}
               </button>
             </div>
@@ -238,7 +237,7 @@ const SignUp = () => {
 
           <button
             type="submit" disabled={loading || success}
-            className="w-full bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium rounded-lg py-2.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full bg-[#5b3256] hover:bg-[#4a2845] text-white text-sm font-medium rounded-lg py-2.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1"
           >
             {loading ? 'Creating account…' : 'Create account'}
           </button>
@@ -246,7 +245,7 @@ const SignUp = () => {
 
         <p className="text-center text-sm text-[#64748B] mt-6">
           Already have an account?{' '}
-          <Link to="/signin" className="text-[#4F46E5] font-medium hover:underline">
+          <Link to="/signin" className="text-[#5b3256] font-medium hover:underline">
             Sign in
           </Link>
         </p>

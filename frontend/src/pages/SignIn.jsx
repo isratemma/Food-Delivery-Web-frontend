@@ -43,25 +43,26 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center bg-[#F1F1F1] px-4">
+      <div className="w-full max-w-sm bg-[#F7F7F7] border border-[#E4E4E4] rounded-2xl px-8 py-10">
 
         {/* Brand */}
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#4F46E5] mb-4">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#5b3256] mb-4">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M3 21H21M3 18H21M6 18V9M10 18V9M14 18V9M18 18V9M2 9L12 3L22 9"
                 stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
           <h1 className="text-xl font-semibold text-[#0F172A]">Sign in to VingoLink</h1>
+          <p className="text-sm text-[#64748B] mt-1">Welcome back</p>
         </div>
 
         {/* Google */}
         <button
           type="button"
           onClick={() => { window.location.href = 'http://localhost:5000/api/auth/google'; }}
-          className="w-full flex items-center justify-center gap-2.5 border border-[#E2E8F0] rounded-lg px-4 py-2.5 text-sm text-[#0F172A] bg-white hover:bg-[#F8FAFC] transition-colors mb-4"
+          className="w-full flex items-center justify-center gap-2.5 border border-[#DCDCDC] rounded-lg px-4 py-2.5 text-sm text-[#0F172A] bg-white hover:bg-[#F1F1F1] transition-colors mb-4"
         >
           <svg width="16" height="16" viewBox="0 0 48 48">
             <path fill="#EA4335" d="M24 9.5c3.14 0 5.95 1.08 8.17 2.85l6.08-6.08C34.46 3.05 29.5 1 24 1 14.82 1 7.07 6.48 3.65 14.27l7.12 5.53C12.47 13.59 17.8 9.5 24 9.5z"/>
@@ -74,9 +75,9 @@ const SignIn = () => {
 
         {/* Divider */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 h-px bg-[#E2E8F0]" />
+          <div className="flex-1 h-px bg-[#DCDCDC]" />
           <span className="text-xs text-[#94A3B8]">or</span>
-          <div className="flex-1 h-px bg-[#E2E8F0]" />
+          <div className="flex-1 h-px bg-[#DCDCDC]" />
         </div>
 
         {/* API error */}
@@ -89,15 +90,13 @@ const SignIn = () => {
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-[#0F172A] mb-1.5">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-[#0F172A] mb-1.5">Email</label>
             <input
               name="email" type="email" autoComplete="email"
               placeholder="you@example.com"
               value={form.email} onChange={handle}
-              className={`w-full border rounded-lg px-3 py-2.5 text-sm text-[#0F172A] placeholder-[#CBD5E1] outline-none transition-colors
-                ${errors.email ? 'border-red-400' : 'border-[#E2E8F0] focus:border-[#4F46E5]'}`}
+              className={`w-full border rounded-lg px-3 py-2.5 text-sm text-[#0F172A] placeholder-[#BBBBBB] bg-white outline-none transition-colors
+                ${errors.email ? 'border-red-400' : 'border-[#DCDCDC] focus:border-[#5b3256]'}`}
             />
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
@@ -106,7 +105,7 @@ const SignIn = () => {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-sm font-medium text-[#0F172A]">Password</label>
-              <Link to="/forgot-password" className="text-xs text-[#4F46E5] hover:underline">
+              <Link to="/forgot-password" className="text-xs text-[#5b3256] hover:underline">
                 Forgot?
               </Link>
             </div>
@@ -115,12 +114,12 @@ const SignIn = () => {
                 name="password" type={showPwd ? 'text' : 'password'}
                 autoComplete="current-password" placeholder="••••••••"
                 value={form.password} onChange={handle}
-                className={`w-full border rounded-lg px-3 py-2.5 pr-10 text-sm text-[#0F172A] placeholder-[#CBD5E1] outline-none transition-colors
-                  ${errors.password ? 'border-red-400' : 'border-[#E2E8F0] focus:border-[#4F46E5]'}`}
+                className={`w-full border rounded-lg px-3 py-2.5 pr-10 text-sm text-[#0F172A] placeholder-[#BBBBBB] bg-white outline-none transition-colors
+                  ${errors.password ? 'border-red-400' : 'border-[#DCDCDC] focus:border-[#5b3256]'}`}
               />
               <button
                 type="button" onClick={() => setShowPwd((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#5b3256] transition-colors"
               >
                 {showPwd ? <HiOutlineEyeSlash size={16} /> : <HiOutlineEye size={16} />}
               </button>
@@ -131,7 +130,7 @@ const SignIn = () => {
           {/* Submit */}
           <button
             type="submit" disabled={loading}
-            className="w-full bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium rounded-lg py-2.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full bg-[#5b3256] hover:bg-[#4a2845] text-white text-sm font-medium rounded-lg py-2.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1"
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
@@ -139,7 +138,7 @@ const SignIn = () => {
 
         <p className="text-center text-sm text-[#64748B] mt-6">
           No account?{' '}
-          <Link to="/signup" className="text-[#4F46E5] font-medium hover:underline">
+          <Link to="/signup" className="text-[#5b3256] font-medium hover:underline">
             Sign up
           </Link>
         </p>
