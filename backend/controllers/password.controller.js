@@ -36,6 +36,9 @@ export const forgotPassword = async (req, res) => {
 
     const resetURL = `${process.env.CLIENT_URL}/reset-password/${rawToken}`;
 
+    console.log(`Sending reset email to: ${user.email}`);
+    console.log(`Reset URL: ${resetURL}`);
+
     await sendEmail({
       to: user.email,
       subject: 'Reset your VingoLink password',
