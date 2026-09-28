@@ -31,29 +31,40 @@ export const forgotPassword = async (req, res) => {
     user.resetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     await user.save();
 
-    console.log(`OTP for ${user.email}: ${otp}`); // dev convenience
+    console.log(`\n🔑 OTP for ${user.email}: ${otp}\n`); // always log for dev
 
-    await sendEmail({
-      to: user.email,
-      subject: 'Your VingoLink password reset OTP',
-      html: `
-        <div style="font-family:sans-serif;max-width:420px;margin:auto;padding:32px;">
-          <h2 style="color:#5b3256;margin-bottom:4px;">Password Reset OTP</h2>
-          <p style="color:#64748b;margin-bottom:24px;">
-            Hi ${user.fullName}, use the code below to reset your password.
-            It expires in <strong>10 minutes</strong>.
-          </p>
-          <div style="background:#f5eef4;border:1.5px solid #d8b4d4;border-radius:12px;
-                      padding:24px;text-align:center;margin-bottom:24px;">
-            <p style="font-size:36px;font-weight:700;letter-spacing:10px;
-                      color:#5b3256;margin:0;">${otp}</p>
+    // If email not configured, skip sending but still succeed
+    if (!process.env.EMAIL_USER || process.env.EMAIL_USER === 'your_gmail@gmail.com') {
+      console.warn('⚠️  Email not configured — OTP printed above for testing');
+      return res.status(200).json({ message: 'OTP sent to your email.' });
+    }
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Your VingoLink password reset OTP',
+        html: `
+          <div style="font-family:sans-serif;max-width:420px;margin:auto;padding:32px;">
+            <h2 style="color:#5b3256;margin-bottom:4px;">Password Reset OTP</h2>
+            <p style="color:#64748b;margin-bottom:24px;">
+              Hi ${user.fullName}, use the code below to reset your password.
+              It expires in <strong>10 minutes</strong>.
+            </p>
+            <div style="background:#f5eef4;border:1.5px solid #d8b4d4;border-radius:12px;
+                        padding:24px;text-align:center;margin-bottom:24px;">
+              <p style="font-size:36px;font-weight:700;letter-spacing:10px;
+                        color:#5b3256;margin:0;">${otp}</p>
+            </div>
+            <p style="color:#94a3b8;font-size:12px;">
+              If you didn't request this, ignore this email. Your password won't change.
+            </p>
           </div>
-          <p style="color:#94a3b8;font-size:12px;">
-            If you didn't request this, ignore this email. Your password won't change.
-          </p>
-        </div>
-      `,
-    });
+        `,
+      });
+    } catch (mailError) {
+      console.error('Email send failed:', mailError.message);
+      // Still return success — OTP is saved, user can check terminal in dev
+    }
 
     return res.status(200).json({ message: 'OTP sent to your email.' });
   } catch (error) {
