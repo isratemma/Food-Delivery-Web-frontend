@@ -1,329 +1,258 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  HiOutlineUser,
-  HiOutlineEnvelope,
-  HiOutlinePhone,
-  HiOutlineLockClosed,
-  HiOutlineEye,
-  HiOutlineEyeSlash,
-  HiOutlineCheckCircle,
+  HiOutlineEye, HiOutlineEyeSlash,
+  HiOutlineUser, HiOutlineTruck, HiOutlineBuildingOffice2,
 } from 'react-icons/hi2';
-import AuthLayout from '../components/layouts/AuthLayout';
-import Input from '../components/ui/Input';
-import Button from '../components/ui/Button';
-import Select from '../components/ui/Select';
-import Alert from '../components/ui/Alert';
 import { signUpApi } from '../api/auth.api';
 
-const ROLE_OPTIONS = [
-  { value: 'user', label: 'User — Browse & book services' },
-  { value: 'owner', label: 'Owner — Manage a business or firm' },
-  { value: 'deliveryBoy', label: 'Delivery — Field / delivery staff' },
+const ROLES = [
+  { value: 'user',        label: 'User',     icon: HiOutlineUser },
+  { value: 'deliveryBoy', label: 'Delivery', icon: HiOutlineTruck },
+  { value: 'owner',       label: 'Owner',    icon: HiOutlineBuildingOffice2 },
 ];
 
-const passwordStrength = (pwd) => {
-  if (!pwd) return { score: 0, label: '', color: '' };
-  let score = 0;
-  if (pwd.length >= 6) score++;
-  if (pwd.length >= 10) score++;
-  if (/[A-Z]/.test(pwd)) score++;
-  if (/[0-9]/.test(pwd)) score++;
-  if (/[^A-Za-z0-9]/.test(pwd)) score++;
-
-  if (score <= 1) return { score, label: 'Weak', color: '#EF4444' };
-  if (score <= 2) return { score, label: 'Fair', color: '#F59E0B' };
-  if (score <= 3) return { score, label: 'Good', color: '#3B82F6' };
-  return { score, label: 'Strong', color: '#22C55E' };
+const pwdStrength = (p) => {
+  if (!p) return null;
+  let s = 0;
+  if (p.length >= 6) s++;
+  if (p.length >= 10) s++;
+  if (/[A-Z]/.test(p)) s++;
+  if (/[0-9]/.test(p)) s++;
+  if (/[^A-Za-z0-9]/.test(p)) s++;
+  if (s <= 1) return { label: 'Weak',   color: '#EF4444', w: 'w-1/4' };
+  if (s <= 2) return { label: 'Fair',   color: '#F59E0B', w: 'w-2/4' };
+  if (s <= 3) return { label: 'Good',   color: '#3B82F6', w: 'w-3/4' };
+  return       { label: 'Strong', color: '#22C55E', w: 'w-full' };
 };
+
+const Field = ({ label, error, children }) => (
+  <div>
+    {label && <label className="block text-sm font-medium text-[#0F172A] mb-1.5">{label}</label>}
+    {children}
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
+const inputCls = (err) =>
+  `w-full border rounded-lg px-3 py-2.5 text-sm text-[#0F172A] placeholder-[#CBD5E1] outline-none transition-colors
+   ${err ? 'border-red-400' : 'border-[#E2E8F0] focus:border-[#4F46E5]'}`;
 
 const SignUp = () => {
   const navigate = useNavigate();
-
   const [form, setForm] = useState({
-    fullName: '',
-    email: '',
-    mobile: '',
-    password: '',
-    confirmPassword: '',
-    role: '',
+    fullName: '', email: '', mobile: '', password: '', confirmPassword: '', role: '',
   });
-  const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [errors, setErrors]   = useState({});
+  const [showPwd, setShowPwd] = useState(false);
+  const [showCfm, setShowCfm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess]   = useState(false);
 
-  const strength = passwordStrength(form.password);
+  const strength = pwdStrength(form.password);
 
-  const handleChange = (e) => {
+  const handle = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
+    setForm((p) => ({ ...p, [name]: value }));
+    if (errors[name]) setErrors((p) => ({ ...p, [name]: '' }));
     if (apiError) setApiError('');
+  };
+
+  const pickRole = (v) => {
+    setForm((p) => ({ ...p, role: v }));
+    if (errors.role) setErrors((p) => ({ ...p, role: '' }));
   };
 
   const validate = () => {
     const e = {};
-
-    if (!form.fullName.trim()) e.fullName = 'Full name is required.';
-    else if (form.fullName.trim().length < 3)
-      e.fullName = 'Name must be at least 3 characters.';
-
-    if (!form.email.trim()) e.email = 'Email is required.';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = 'Enter a valid email address.';
-
-    if (!form.mobile.trim()) e.mobile = 'Mobile number is required.';
-    else if (form.mobile.replace(/\D/g, '').length < 11)
-      e.mobile = 'Mobile number must be at least 11 digits.';
-
-    if (!form.role) e.role = 'Please select a role.';
-
-    if (!form.password) e.password = 'Password is required.';
-    else if (form.password.length < 6)
-      e.password = 'Password must be at least 6 characters.';
-
-    if (!form.confirmPassword) e.confirmPassword = 'Please confirm your password.';
-    else if (form.password !== form.confirmPassword)
-      e.confirmPassword = 'Passwords do not match.';
-
+    if (!form.fullName.trim())  e.fullName = 'Required';
+    else if (form.fullName.trim().length < 3) e.fullName = 'At least 3 characters';
+    if (!form.email.trim())     e.email = 'Required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email';
+    if (!form.mobile.trim())    e.mobile = 'Required';
+    else if (form.mobile.replace(/\D/g,'').length < 11) e.mobile = 'At least 11 digits';
+    if (!form.role)             e.role = 'Select a role';
+    if (!form.password)         e.password = 'Required';
+    else if (form.password.length < 6) e.password = 'At least 6 characters';
+    if (!form.confirmPassword)  e.confirmPassword = 'Required';
+    else if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match';
     return e;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
+    const v = validate();
+    if (Object.keys(v).length) { setErrors(v); return; }
     try {
       setLoading(true);
       await signUpApi({
-        fullName: form.fullName.trim(),
-        email: form.email.trim(),
-        mobile: form.mobile.trim(),
-        password: form.password,
-        role: form.role,
+        fullName: form.fullName.trim(), email: form.email.trim(),
+        mobile: form.mobile.trim(), password: form.password, role: form.role,
       });
       setSuccess(true);
-      setTimeout(() => navigate('/signin'), 1800);
+      setTimeout(() => navigate('/signin'), 1500);
     } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        'Something went wrong. Please try again.';
-      setApiError(message);
+      setApiError(err.response?.data?.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout>
-      {/* Heading */}
-      <div className="mb-7 space-y-1.5">
-        <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: '#0F172A' }}>
-          Create your account
-        </h2>
-        <p className="text-sm" style={{ color: '#64748B' }}>
-          Join VingoLink and start building together
-        </p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4 py-12">
+      <div className="w-full max-w-sm">
 
-      {/* Success state */}
-      {success && (
-        <div className="mb-5">
-          <Alert
-            type="success"
-            message="Account created! Redirecting you to sign in…"
-          />
-        </div>
-      )}
-
-      {/* API error */}
-      {apiError && (
-        <div className="mb-5">
-          <Alert type="error" message={apiError} />
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
-        {/* Full Name */}
-        <Input
-          label="Full name"
-          id="fullName"
-          type="text"
-          placeholder="John Adler"
-          value={form.fullName}
-          onChange={handleChange}
-          error={errors.fullName}
-          icon={HiOutlineUser}
-          required
-          autoComplete="name"
-        />
-
-        {/* Email */}
-        <Input
-          label="Email address"
-          id="email"
-          type="email"
-          placeholder="you@example.com"
-          value={form.email}
-          onChange={handleChange}
-          error={errors.email}
-          icon={HiOutlineEnvelope}
-          required
-          autoComplete="email"
-        />
-
-        {/* Mobile */}
-        <Input
-          label="Mobile number"
-          id="mobile"
-          type="tel"
-          placeholder="01xxxxxxxxx"
-          value={form.mobile}
-          onChange={handleChange}
-          error={errors.mobile}
-          icon={HiOutlinePhone}
-          required
-          autoComplete="tel"
-        />
-
-        {/* Role */}
-        <Select
-          label="I am a…"
-          id="role"
-          value={form.role}
-          onChange={handleChange}
-          options={ROLE_OPTIONS}
-          placeholder="Select your role"
-          error={errors.role}
-          required
-        />
-
-        {/* Password */}
-        <div className="space-y-2">
-          <Input
-            label="Password"
-            id="password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Create a strong password"
-            value={form.password}
-            onChange={handleChange}
-            error={errors.password}
-            icon={HiOutlineLockClosed}
-            required
-            autoComplete="new-password"
-            rightElement={
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="text-[#64748B] hover:text-[#4F46E5] transition-colors focus:outline-none"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? (
-                  <HiOutlineEyeSlash size={18} />
-                ) : (
-                  <HiOutlineEye size={18} />
-                )}
-              </button>
-            }
-          />
-
-          {/* Strength bar */}
-          {form.password && (
-            <div className="space-y-1">
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={i}
-                    className="h-1 flex-1 rounded-full transition-all duration-300"
-                    style={{
-                      backgroundColor:
-                        i <= strength.score ? strength.color : '#E2E8F0',
-                    }}
-                  />
-                ))}
-              </div>
-              <p className="text-xs" style={{ color: strength.color }}>
-                {strength.label} password
-              </p>
-            </div>
-          )}
+        {/* Brand */}
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#4F46E5] mb-4">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M3 21H21M3 18H21M6 18V9M10 18V9M14 18V9M18 18V9M2 9L12 3L22 9"
+                stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-semibold text-[#0F172A]">Create your account</h1>
+          <p className="text-sm text-[#64748B] mt-1">It&apos;s free and takes a minute</p>
         </div>
 
-        {/* Confirm Password */}
-        <Input
-          label="Confirm password"
-          id="confirmPassword"
-          type={showConfirm ? 'text' : 'password'}
-          placeholder="Repeat your password"
-          value={form.confirmPassword}
-          onChange={handleChange}
-          error={errors.confirmPassword}
-          icon={
-            form.confirmPassword && form.password === form.confirmPassword
-              ? HiOutlineCheckCircle
-              : HiOutlineLockClosed
-          }
-          required
-          autoComplete="new-password"
-          rightElement={
-            <button
-              type="button"
-              onClick={() => setShowConfirm((v) => !v)}
-              className="text-[#64748B] hover:text-[#4F46E5] transition-colors focus:outline-none"
-              aria-label={showConfirm ? 'Hide password' : 'Show password'}
-            >
-              {showConfirm ? (
-                <HiOutlineEyeSlash size={18} />
-              ) : (
-                <HiOutlineEye size={18} />
-              )}
-            </button>
-          }
-        />
-
-        {/* Terms note */}
-        <p className="text-xs leading-relaxed" style={{ color: '#94A3B8' }}>
-          By creating an account you agree to our{' '}
-          <Link
-            to="/terms"
-            className="underline hover:text-[#4F46E5] transition-colors"
-          >
-            Terms of Service
-          </Link>{' '}
-          and{' '}
-          <Link
-            to="/privacy"
-            className="underline hover:text-[#4F46E5] transition-colors"
-          >
-            Privacy Policy
-          </Link>
-          .
-        </p>
-
-        <Button type="submit" fullWidth loading={loading} disabled={success}>
-          {loading ? 'Creating account…' : 'Create Account'}
-        </Button>
-      </form>
-
-      {/* Sign in link */}
-      <p className="text-center text-sm mt-6" style={{ color: '#64748B' }}>
-        Already have an account?{' '}
-        <Link
-          to="/signin"
-          className="font-semibold transition-colors hover:underline"
-          style={{ color: '#4F46E5' }}
+        {/* Google */}
+        <button
+          type="button"
+          onClick={() => { window.location.href = 'http://localhost:5000/api/auth/google'; }}
+          className="w-full flex items-center justify-center gap-2.5 border border-[#E2E8F0] rounded-lg px-4 py-2.5 text-sm text-[#0F172A] bg-white hover:bg-[#F8FAFC] transition-colors mb-4"
         >
-          Sign in
-        </Link>
-      </p>
-    </AuthLayout>
+          <svg width="16" height="16" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.14 0 5.95 1.08 8.17 2.85l6.08-6.08C34.46 3.05 29.5 1 24 1 14.82 1 7.07 6.48 3.65 14.27l7.12 5.53C12.47 13.59 17.8 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.52 24.5c0-1.64-.15-3.22-.42-4.75H24v9h12.68c-.55 2.94-2.2 5.44-4.68 7.12l7.18 5.58C43.36 37.38 46.52 31.42 46.52 24.5z"/>
+            <path fill="#FBBC05" d="M10.77 28.2A14.54 14.54 0 019.5 24c0-1.46.25-2.87.68-4.2l-7.12-5.53A23.93 23.93 0 001 24c0 3.86.93 7.5 2.58 10.72l7.19-6.52z"/>
+            <path fill="#34A853" d="M24 47c5.5 0 10.12-1.82 13.49-4.94l-7.18-5.58C28.51 38.25 26.36 39 24 39c-6.2 0-11.47-4.09-13.23-9.8l-7.19 6.52C7.07 43.52 14.82 47 24 47z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-[#E2E8F0]" />
+          <span className="text-xs text-[#94A3B8]">or</span>
+          <div className="flex-1 h-px bg-[#E2E8F0]" />
+        </div>
+
+        {/* Success */}
+        {success && (
+          <p className="text-sm text-green-600 bg-green-50 border border-green-100 rounded-lg px-3 py-2.5 mb-4">
+            Account created! Redirecting…
+          </p>
+        )}
+
+        {/* API error */}
+        {apiError && (
+          <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5 mb-4">
+            {apiError}
+          </p>
+        )}
+
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+
+          {/* Role buttons */}
+          <Field label="I am a…" error={errors.role}>
+            <div className="grid grid-cols-3 gap-2">
+              {ROLES.map(({ value, label, icon: Icon }) => {
+                const active = form.role === value;
+                return (
+                  <button
+                    key={value} type="button" onClick={() => pickRole(value)}
+                    className={`flex flex-col items-center gap-1.5 rounded-lg border py-3 text-xs font-medium transition-colors
+                      ${active
+                        ? 'border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]'
+                        : 'border-[#E2E8F0] bg-white text-[#64748B] hover:border-[#C7D2FE]'
+                      }`}
+                  >
+                    <Icon size={17} />
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+
+          {/* Full name */}
+          <Field label="Full name" error={errors.fullName}>
+            <input name="fullName" type="text" autoComplete="name"
+              placeholder="John Adler" value={form.fullName} onChange={handle}
+              className={inputCls(errors.fullName)} />
+          </Field>
+
+          {/* Email */}
+          <Field label="Email" error={errors.email}>
+            <input name="email" type="email" autoComplete="email"
+              placeholder="you@example.com" value={form.email} onChange={handle}
+              className={inputCls(errors.email)} />
+          </Field>
+
+          {/* Mobile */}
+          <Field label="Mobile" error={errors.mobile}>
+            <input name="mobile" type="tel" autoComplete="tel"
+              placeholder="01xxxxxxxxx" value={form.mobile} onChange={handle}
+              className={inputCls(errors.mobile)} />
+          </Field>
+
+          {/* Password */}
+          <Field label="Password" error={errors.password}>
+            <div className="relative">
+              <input name="password" type={showPwd ? 'text' : 'password'}
+                autoComplete="new-password" placeholder="••••••••"
+                value={form.password} onChange={handle}
+                className={inputCls(errors.password) + ' pr-10'} />
+              <button type="button" onClick={() => setShowPwd((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]">
+                {showPwd ? <HiOutlineEyeSlash size={16} /> : <HiOutlineEye size={16} />}
+              </button>
+            </div>
+            {/* Strength bar */}
+            {strength && (
+              <div className="mt-2 space-y-1">
+                <div className="h-1 w-full bg-[#E2E8F0] rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${strength.w}`}
+                    style={{ backgroundColor: strength.color }}
+                  />
+                </div>
+                <p className="text-xs" style={{ color: strength.color }}>{strength.label}</p>
+              </div>
+            )}
+          </Field>
+
+          {/* Confirm password */}
+          <Field label="Confirm password" error={errors.confirmPassword}>
+            <div className="relative">
+              <input name="confirmPassword" type={showCfm ? 'text' : 'password'}
+                autoComplete="new-password" placeholder="••••••••"
+                value={form.confirmPassword} onChange={handle}
+                className={inputCls(errors.confirmPassword) + ' pr-10'} />
+              <button type="button" onClick={() => setShowCfm((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]">
+                {showCfm ? <HiOutlineEyeSlash size={16} /> : <HiOutlineEye size={16} />}
+              </button>
+            </div>
+          </Field>
+
+          <button
+            type="submit" disabled={loading || success}
+            className="w-full bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium rounded-lg py-2.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Creating account…' : 'Create account'}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-[#64748B] mt-6">
+          Already have an account?{' '}
+          <Link to="/signin" className="text-[#4F46E5] font-medium hover:underline">
+            Sign in
+          </Link>
+        </p>
+
+      </div>
+    </div>
   );
 };
 

@@ -1,159 +1,151 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { HiOutlineEnvelope, HiOutlineLockClosed, HiOutlineEye, HiOutlineEyeSlash } from 'react-icons/hi2';
-import AuthLayout from '../components/layouts/AuthLayout';
-import Input from '../components/ui/Input';
-import Button from '../components/ui/Button';
-import Alert from '../components/ui/Alert';
+import { HiOutlineEye, HiOutlineEyeSlash } from 'react-icons/hi2';
 import { signInApi } from '../api/auth.api';
 
 const SignIn = () => {
   const navigate = useNavigate();
-
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
 
-  const handleChange = (e) => {
+  const handle = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    // Clear field error on change
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
+    setForm((p) => ({ ...p, [name]: value }));
+    if (errors[name]) setErrors((p) => ({ ...p, [name]: '' }));
     if (apiError) setApiError('');
   };
 
   const validate = () => {
-    const newErrors = {};
-    if (!form.email.trim()) {
-      newErrors.email = 'Email is required.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      newErrors.email = 'Enter a valid email address.';
-    }
-    if (!form.password) {
-      newErrors.password = 'Password is required.';
-    } else if (form.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters.';
-    }
-    return newErrors;
+    const e = {};
+    if (!form.email.trim()) e.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Enter a valid email';
+    if (!form.password) e.password = 'Password is required';
+    else if (form.password.length < 6) e.password = 'At least 6 characters';
+    return e;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
+    const v = validate();
+    if (Object.keys(v).length) { setErrors(v); return; }
     try {
       setLoading(true);
       await signInApi({ email: form.email.trim(), password: form.password });
       navigate('/dashboard');
     } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        'Something went wrong. Please try again.';
-      setApiError(message);
+      setApiError(err.response?.data?.message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout>
-      {/* Heading */}
-      <div className="mb-8 space-y-1.5">
-        <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: '#0F172A' }}>
-          Welcome back
-        </h2>
-        <p className="text-sm" style={{ color: '#64748B' }}>
-          Sign in to your VingoLink account
-        </p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4">
+      <div className="w-full max-w-sm">
 
-      {/* API error */}
-      {apiError && <div className="mb-5"><Alert type="error" message={apiError} /></div>}
-
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
-        <Input
-          label="Email address"
-          id="email"
-          type="email"
-          placeholder="you@example.com"
-          value={form.email}
-          onChange={handleChange}
-          error={errors.email}
-          icon={HiOutlineEnvelope}
-          required
-          autoComplete="email"
-        />
-
-        <Input
-          label="Password"
-          id="password"
-          type={showPassword ? 'text' : 'password'}
-          placeholder="Enter your password"
-          value={form.password}
-          onChange={handleChange}
-          error={errors.password}
-          icon={HiOutlineLockClosed}
-          required
-          autoComplete="current-password"
-          rightElement={
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              className="text-[#64748B] hover:text-[#4F46E5] transition-colors focus:outline-none"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? (
-                <HiOutlineEyeSlash size={18} />
-              ) : (
-                <HiOutlineEye size={18} />
-              )}
-            </button>
-          }
-        />
-
-        {/* Forgot password link */}
-        <div className="flex justify-end">
-          <Link
-            to="/forgot-password"
-            className="text-sm font-medium transition-colors"
-            style={{ color: '#4F46E5' }}
-          >
-            Forgot password?
-          </Link>
+        {/* Brand */}
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#4F46E5] mb-4">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M3 21H21M3 18H21M6 18V9M10 18V9M14 18V9M18 18V9M2 9L12 3L22 9"
+                stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-semibold text-[#0F172A]">Sign in to VingoLink</h1>
         </div>
 
-        <Button type="submit" fullWidth loading={loading}>
-          {loading ? 'Signing in…' : 'Sign In'}
-        </Button>
-      </form>
-
-      {/* Divider */}
-      <div className="flex items-center gap-3 my-6">
-        <div className="flex-1 h-px" style={{ backgroundColor: '#E2E8F0' }} />
-        <span className="text-xs" style={{ color: '#94A3B8' }}>
-          or
-        </span>
-        <div className="flex-1 h-px" style={{ backgroundColor: '#E2E8F0' }} />
-      </div>
-
-      {/* Sign up link */}
-      <p className="text-center text-sm" style={{ color: '#64748B' }}>
-        Don&apos;t have an account?{' '}
-        <Link
-          to="/signup"
-          className="font-semibold transition-colors hover:underline"
-          style={{ color: '#4F46E5' }}
+        {/* Google */}
+        <button
+          type="button"
+          onClick={() => { window.location.href = 'http://localhost:5000/api/auth/google'; }}
+          className="w-full flex items-center justify-center gap-2.5 border border-[#E2E8F0] rounded-lg px-4 py-2.5 text-sm text-[#0F172A] bg-white hover:bg-[#F8FAFC] transition-colors mb-4"
         >
-          Create account
-        </Link>
-      </p>
-    </AuthLayout>
+          <svg width="16" height="16" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.14 0 5.95 1.08 8.17 2.85l6.08-6.08C34.46 3.05 29.5 1 24 1 14.82 1 7.07 6.48 3.65 14.27l7.12 5.53C12.47 13.59 17.8 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.52 24.5c0-1.64-.15-3.22-.42-4.75H24v9h12.68c-.55 2.94-2.2 5.44-4.68 7.12l7.18 5.58C43.36 37.38 46.52 31.42 46.52 24.5z"/>
+            <path fill="#FBBC05" d="M10.77 28.2A14.54 14.54 0 019.5 24c0-1.46.25-2.87.68-4.2l-7.12-5.53A23.93 23.93 0 001 24c0 3.86.93 7.5 2.58 10.72l7.19-6.52z"/>
+            <path fill="#34A853" d="M24 47c5.5 0 10.12-1.82 13.49-4.94l-7.18-5.58C28.51 38.25 26.36 39 24 39c-6.2 0-11.47-4.09-13.23-9.8l-7.19 6.52C7.07 43.52 14.82 47 24 47z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-[#E2E8F0]" />
+          <span className="text-xs text-[#94A3B8]">or</span>
+          <div className="flex-1 h-px bg-[#E2E8F0]" />
+        </div>
+
+        {/* API error */}
+        {apiError && (
+          <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5 mb-4">
+            {apiError}
+          </p>
+        )}
+
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-[#0F172A] mb-1.5">
+              Email
+            </label>
+            <input
+              name="email" type="email" autoComplete="email"
+              placeholder="you@example.com"
+              value={form.email} onChange={handle}
+              className={`w-full border rounded-lg px-3 py-2.5 text-sm text-[#0F172A] placeholder-[#CBD5E1] outline-none transition-colors
+                ${errors.email ? 'border-red-400' : 'border-[#E2E8F0] focus:border-[#4F46E5]'}`}
+            />
+            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+          </div>
+
+          {/* Password */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-sm font-medium text-[#0F172A]">Password</label>
+              <Link to="/forgot-password" className="text-xs text-[#4F46E5] hover:underline">
+                Forgot?
+              </Link>
+            </div>
+            <div className="relative">
+              <input
+                name="password" type={showPwd ? 'text' : 'password'}
+                autoComplete="current-password" placeholder="••••••••"
+                value={form.password} onChange={handle}
+                className={`w-full border rounded-lg px-3 py-2.5 pr-10 text-sm text-[#0F172A] placeholder-[#CBD5E1] outline-none transition-colors
+                  ${errors.password ? 'border-red-400' : 'border-[#E2E8F0] focus:border-[#4F46E5]'}`}
+              />
+              <button
+                type="button" onClick={() => setShowPwd((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]"
+              >
+                {showPwd ? <HiOutlineEyeSlash size={16} /> : <HiOutlineEye size={16} />}
+              </button>
+            </div>
+            {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit" disabled={loading}
+            className="w-full bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium rounded-lg py-2.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-[#64748B] mt-6">
+          No account?{' '}
+          <Link to="/signup" className="text-[#4F46E5] font-medium hover:underline">
+            Sign up
+          </Link>
+        </p>
+
+      </div>
+    </div>
   );
 };
 
