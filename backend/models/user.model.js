@@ -20,14 +20,21 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "owner", "deliveryBoy"],
-      required: true
+      enum: ['user', 'owner', 'deliveryBoy'],
+      required: true,
+    },
+    resetToken: {
+      type: String,
+      default: null,
+    },
+    resetTokenExpiry: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true }
 );
 
+const User = mongoose.model('User', userSchema);
 
-const User = mongoose.model("User", userSchema)
-
-export default User
+export default User;
