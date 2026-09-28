@@ -103,11 +103,8 @@ const SignIn = () => {
 
           {/* Password */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
+            <div className="mb-1.5">
               <label className="text-sm font-medium text-[#0F172A]">Password</label>
-              <Link to="/forgot-password" className="text-xs text-[#5b3256] hover:underline">
-                Forgot?
-              </Link>
             </div>
             <div className="relative">
               <input
