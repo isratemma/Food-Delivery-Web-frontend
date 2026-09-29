@@ -122,7 +122,13 @@ const SignUp = () => {
       setApiError('');
       const result = await signInWithPopup(auth, googleProvider);
       const { email, displayName, photoURL, uid } = result.user;
-      await googleSignInApi({ email, fullName: displayName, avatar: photoURL, googleUid: uid, role: form.role });
+      await googleSignInApi({
+        email,
+        fullName: displayName || email.split('@')[0],
+        avatar: photoURL || '',
+        googleUid: uid,
+        role: form.role,
+      });
       navigate('/dashboard');
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') return;

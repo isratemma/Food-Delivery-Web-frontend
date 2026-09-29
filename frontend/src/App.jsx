@@ -9,6 +9,8 @@ const App = () => {
       <Route path="/" element={<Navigate to="/signin" replace />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/signin" element={<SignIn />} />
+
+      {/* Placeholder — replace with real dashboard + auth guard */}
       <Route
         path="/dashboard"
         element={
@@ -20,6 +22,9 @@ const App = () => {
           </div>
         }
       />
+
+      {/* 404 — redirect unknown paths back to sign in */}
+      <Route path="*" element={<Navigate to="/signin" replace />} />
     </Routes>
   );
 };
