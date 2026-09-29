@@ -7,6 +7,7 @@ import {
 } from '../controllers/item.controller.js';
 import protect from '../middlewares/protect.js';
 import restrictTo from '../middlewares/restrictTo.js';
+import { uploadItemImage } from '../middlewares/upload.js';
 
 const router = express.Router();
 
@@ -14,7 +15,7 @@ const router = express.Router();
 router.get('/:id', getItemById);
 
 // ── Owner protected ──
-router.put('/:id',          protect, restrictTo('owner'), updateItem);
+router.put('/:id',          protect, restrictTo('owner'), uploadItemImage, updateItem);
 router.delete('/:id',       protect, restrictTo('owner'), deleteItem);
 router.patch('/:id/toggle', protect, restrictTo('owner'), toggleItemAvailability);
 

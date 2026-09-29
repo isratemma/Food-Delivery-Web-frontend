@@ -14,20 +14,21 @@ import {
 } from '../controllers/item.controller.js';
 import protect from '../middlewares/protect.js';
 import restrictTo from '../middlewares/restrictTo.js';
+import { uploadShopImage, uploadItemImage } from '../middlewares/upload.js';
 
 const router = express.Router();
 
 // ── Public ──
-router.get('/',           getAllShops);
-router.get('/my',         protect, restrictTo('owner'), getMyShop);
-router.get('/:id',        getShopById);
+router.get('/',              getAllShops);
+router.get('/my',            protect, restrictTo('owner'), getMyShop);
+router.get('/:id',           getShopById);
 router.get('/:shopId/items', getShopItems);
 
 // ── Owner protected ──
-router.post('/',              protect, restrictTo('owner'), createShop);
-router.put('/:id',            protect, restrictTo('owner'), updateShop);
+router.post('/',              protect, restrictTo('owner'), uploadShopImage, createShop);
+router.put('/:id',            protect, restrictTo('owner'), uploadShopImage, updateShop);
 router.delete('/:id',         protect, restrictTo('owner'), deleteShop);
 router.patch('/:id/toggle',   protect, restrictTo('owner'), toggleShopStatus);
-router.post('/:shopId/items', protect, restrictTo('owner'), createItem);
+router.post('/:shopId/items', protect, restrictTo('owner'), uploadItemImage, createItem);
 
 export default router;

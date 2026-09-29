@@ -10,13 +10,15 @@ const verifyOwnership = async (shopId, userId) => {
 /* ── Add item to shop ────────────────────────────────────────
    POST /api/shops/:shopId/items
    Protected — owner only
+   Accepts multipart/form-data with optional image field
 ──────────────────────────────────────────────────────────── */
 export const createItem = async (req, res) => {
   try {
     const shop = await verifyOwnership(req.params.shopId, req.user._id);
     if (!shop) return res.status(403).json({ message: 'Shop not found or not yours.' });
 
-    const item = await Item.create({ ...req.body, shop: req.params.shopId });
+    const image = req.file?.path || req.body.image || '';
+    const item = await Item.create({ ...req.body, image, shop: req.params.shopId });
     return res.status(201).json(item);
   } catch (error) {
     console.error('createItem error:', error);
@@ -71,6 +73,8 @@ export const updateItem = async (req, res) => {
     if (String(item.shop.owner) !== String(req.user._id)) {
       return res.status(403).json({ message: 'Not authorised.' });
     }
+
+    if (req.file?.path) req.body.image = req.file.path;
 
     const updated = await Item.findByIdAndUpdate(req.params.id, req.body, {
       new: true,

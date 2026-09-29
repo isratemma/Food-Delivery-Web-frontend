@@ -3,6 +3,7 @@ import Shop from '../models/shop.model.js';
 /* ── Create Shop ─────────────────────────────────────────────
    POST /api/shops
    Protected — owner only
+   Accepts multipart/form-data with optional image field
 ──────────────────────────────────────────────────────────── */
 export const createShop = async (req, res) => {
   try {
@@ -11,7 +12,10 @@ export const createShop = async (req, res) => {
       return res.status(400).json({ message: 'You already have a shop.' });
     }
 
-    const shop = await Shop.create({ ...req.body, owner: req.user._id });
+    // If image uploaded via multer-cloudinary, req.file.path = secure_url
+    const image = req.file?.path || req.body.image || '';
+
+    const shop = await Shop.create({ ...req.body, image, owner: req.user._id });
     return res.status(201).json(shop);
   } catch (error) {
     console.error('createShop error:', error);
@@ -89,6 +93,8 @@ export const updateShop = async (req, res) => {
   try {
     const shop = await Shop.findOne({ _id: req.params.id, owner: req.user._id });
     if (!shop) return res.status(404).json({ message: 'Shop not found or not yours.' });
+
+    if (req.file?.path) req.body.image = req.file.path;
 
     const updated = await Shop.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
