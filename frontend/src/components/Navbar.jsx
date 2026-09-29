@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -16,20 +16,20 @@ const Navbar = () => {
   const user      = useSelector(selectUser);
   const isAuth    = useSelector(selectIsAuth);
 
-  const [location, setLocation]       = useState('Your location');
-  const [search, setSearch]           = useState('');
-  const [locLoading, setLocLoading]   = useState(false);
-  const [locError, setLocError]       = useState('');
+  const [location, setLocation]     = useState('Your location');
+  const [search, setSearch]         = useState('');
+  const [locLoading, setLocLoading] = useState(false);
+  const [locError, setLocError]     = useState('');
 
   const handleSignOut = async () => {
     await dispatch(signOut());
     navigate('/signin');
   };
 
-  // Auto-detect city using browser GPS + Geoapify reverse geocoding
-  const detectLocation = () => {
+  // Reverse geocode GPS coords → city name
+  const detectLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      setLocError('Geolocation not supported');
+      setLocError('Not supported');
       return;
     }
     setLocLoading(true);
@@ -41,26 +41,25 @@ const Navbar = () => {
           const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lon}&format=json&apiKey=${GEOAPIFY_KEY}`;
           const res  = await fetch(url);
           const data = await res.json();
-          const result = data.results?.[0];
-          const city =
-            result?.city ||
-            result?.county ||
-            result?.state ||
-            result?.country ||
-            'Unknown location';
-          setLocation(city);
+          const r    = data.results?.[0];
+          setLocation(r?.city || r?.county || r?.state || r?.country || 'Unknown');
         } catch {
-          setLocError('Could not fetch location');
+          setLocError('Failed');
         } finally {
           setLocLoading(false);
         }
       },
       () => {
-        setLocError('Permission denied');
+        setLocError('Denied');
         setLocLoading(false);
       }
     );
-  };
+  }, []);
+
+  // Auto-detect when user logs in (isAuth flips true)
+  useEffect(() => {
+    if (isAuth) detectLocation();
+  }, [isAuth, detectLocation]);
 
   const initials = user?.fullName
     ? user.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
@@ -75,10 +74,10 @@ const Navbar = () => {
           <span className="text-2xl font-extrabold text-[#5b3256] tracking-tight">VingoLink</span>
         </Link>
 
-        {/* Location + Search bar */}
+        {/* Location + Search */}
         <div className="flex flex-1 items-center bg-white border border-[#e8dde8] rounded-xl overflow-hidden mx-2 sm:mx-4">
 
-          {/* Location */}
+          {/* Location — click to re-detect */}
           <button
             type="button"
             onClick={detectLocation}
@@ -111,10 +110,8 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Right side */}
+        {/* Right */}
         <div className="flex items-center gap-3 shrink-0">
-
-          {/* Cart */}
           <Link to="/cart" className="relative p-1">
             <HiOutlineShoppingCart size={22} className="text-[#5b3256]" />
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#5b3256] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -122,13 +119,11 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* My Orders */}
           <Link to="/orders"
             className="hidden sm:block text-sm font-semibold text-[#5b3256] hover:opacity-80 transition-opacity whitespace-nowrap">
             My Orders
           </Link>
 
-          {/* Avatar */}
           {isAuth ? (
             <button
               onClick={handleSignOut}

@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { signInApi, signUpApi, signOutApi, googleSignInApi } from '../../api/auth.api';
+import api from '../../api/axios';
 
 /* ── Async Thunks ─────────────────────────────────────────── */
 
@@ -46,6 +47,19 @@ export const googleSignIn = createAsyncThunk(
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Google sign-in failed.');
+    }
+  }
+);
+
+// Called on app load — rehydrates user from httpOnly cookie
+export const fetchMe = createAsyncThunk(
+  'auth/fetchMe',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get('/auth/me');
+      return res.data;
+    } catch {
+      return rejectWithValue(null); // not logged in — silent fail
     }
   }
 );
@@ -112,6 +126,18 @@ const authSlice = createSlice({
         state.error   = null;
       })
       .addCase(googleSignIn.rejected, rejected);
+
+    // ── fetchMe (silent rehydrate on app load) ──
+    builder
+      .addCase(fetchMe.pending, (state) => { state.loading = true; })
+      .addCase(fetchMe.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user    = action.payload;
+      })
+      .addCase(fetchMe.rejected, (state) => {
+        state.loading = false;
+        state.user    = null; // cookie invalid or absent
+      });
   },
 });
 
