@@ -4,6 +4,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
+import shopRoutes from './routes/shop.routes.js';
+import itemRoutes from './routes/item.routes.js';
 
 dotenv.config();
 
@@ -19,7 +21,9 @@ app.use(
   })
 );
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth',  authRoutes);
+app.use('/api/shops', shopRoutes);
+app.use('/api/items', itemRoutes);
 
 app.listen(port, async () => {
   await connectDB();
