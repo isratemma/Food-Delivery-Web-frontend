@@ -110,7 +110,7 @@ const SignUp = () => {
     }));
     if (signUp.fulfilled.match(result)) {
       setSuccess(true);
-      setTimeout(() => navigate('/signin'), 1500);
+      setTimeout(() => navigate('/'), 1500);
     }
   };
 
@@ -131,7 +131,7 @@ const SignUp = () => {
         googleUid: uid,
         role: form.role,
       }));
-      if (googleSignIn.fulfilled.match(action)) navigate('/dashboard');
+      if (googleSignIn.fulfilled.match(action)) navigate('/');
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') return;
     } finally {

@@ -48,7 +48,7 @@ const SignIn = () => {
     const v = validate();
     if (Object.keys(v).length) { setErrors(v); return; }
     const result = await dispatch(signIn({ email: form.email.trim(), password: form.password }));
-    if (signIn.fulfilled.match(result)) navigate('/dashboard');
+    if (signIn.fulfilled.match(result)) navigate('/');
   };
 
   const handleGoogle = async () => {
@@ -63,7 +63,7 @@ const SignIn = () => {
         avatar: photoURL || '',
         googleUid: uid,
       }));
-      if (googleSignIn.fulfilled.match(action)) navigate('/dashboard');
+      if (googleSignIn.fulfilled.match(action)) navigate('/');
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') return;
     } finally {
