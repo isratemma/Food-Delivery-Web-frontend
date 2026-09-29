@@ -32,7 +32,7 @@ const Navbar = () => {
 
         {/* Logo */}
         <Link to="/" className="shrink-0">
-          <span className="text-2xl font-extrabold text-[#5b3256] tracking-tight">Vingo</span>
+          <span className="text-2xl font-extrabold text-[#5b3256] tracking-tight">VingoLink</span>
         </Link>
 
         {/* Location + Search bar */}
