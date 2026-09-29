@@ -69,9 +69,10 @@ export const fetchMe = createAsyncThunk(
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: null,       // user object from backend
-    loading: false,   // request in flight
-    error: null,      // error message string
+    user: null,
+    loading: false,
+    error: null,
+    authChecked: false, // true once fetchMe completes (success or fail)
   },
   reducers: {
     // Clear error manually (e.g. when user starts typing)
@@ -129,14 +130,14 @@ const authSlice = createSlice({
 
     // ── fetchMe (silent rehydrate on app load) ──
     builder
-      .addCase(fetchMe.pending, (state) => { state.loading = true; })
+      .addCase(fetchMe.pending, (state) => { state.loading = false; }) // don't block UI
       .addCase(fetchMe.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user    = action.payload;
+        state.user        = action.payload;
+        state.authChecked = true;
       })
       .addCase(fetchMe.rejected, (state) => {
-        state.loading = false;
-        state.user    = null; // cookie invalid or absent
+        state.user        = null;
+        state.authChecked = true;
       });
   },
 });
@@ -144,9 +145,10 @@ const authSlice = createSlice({
 export const { clearError, setUser } = authSlice.actions;
 
 /* ── Selectors ────────────────────────────────────────────── */
-export const selectUser        = (state) => state.auth.user;
-export const selectAuthLoading = (state) => state.auth.loading;
-export const selectAuthError   = (state) => state.auth.error;
-export const selectIsAuth      = (state) => !!state.auth.user;
+export const selectUser         = (state) => state.auth.user;
+export const selectAuthLoading  = (state) => state.auth.loading;
+export const selectAuthError    = (state) => state.auth.error;
+export const selectIsAuth       = (state) => !!state.auth.user;
+export const selectAuthChecked  = (state) => state.auth.authChecked;
 
 export default authSlice.reducer;

@@ -4,19 +4,19 @@ import { useDispatch, useSelector } from 'react-redux';
 import Home from './pages/Home';
 import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
-import { fetchMe, selectAuthLoading } from './store/slices/authSlice';
+import { fetchMe, selectAuthChecked } from './store/slices/authSlice';
 
 const App = () => {
-  const dispatch = useDispatch();
-  const loading  = useSelector(selectAuthLoading);
+  const dispatch     = useDispatch();
+  const authChecked  = useSelector(selectAuthChecked);
 
-  // On every app load / refresh — rehydrate user from cookie
+  // On every app load / refresh — rehydrate user from httpOnly cookie
   useEffect(() => {
     dispatch(fetchMe());
   }, [dispatch]);
 
-  // Show nothing while checking auth (avoids flash of wrong UI)
-  if (loading) {
+  // Show spinner only while the initial auth check is in flight
+  if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fff8f6]">
         <svg className="animate-spin h-7 w-7 text-[#5b3256]" fill="none" viewBox="0 0 24 24">
@@ -29,10 +29,10 @@ const App = () => {
 
   return (
     <Routes>
-      <Route path="/"          element={<Home />} />
-      <Route path="/signup"    element={<SignUp />} />
-      <Route path="/signin"    element={<SignIn />} />
-      <Route path="*"          element={<Navigate to="/" replace />} />
+      <Route path="/"       element={<Home />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/signin" element={<SignIn />} />
+      <Route path="*"       element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
