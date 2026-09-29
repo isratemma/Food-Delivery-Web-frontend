@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   HiOutlineEye, HiOutlineEyeSlash,
   HiOutlineUser, HiOutlineTruck, HiOutlineBuildingOffice2,
 } from 'react-icons/hi2';
-import { signUpApi, googleSignInApi } from '../api/auth.api';
+import { signUp, googleSignIn, clearError, selectAuthLoading, selectAuthError } from '../store/slices/authSlice';
 import { auth, googleProvider } from '../lib/firebase';
 import { signInWithPopup } from 'firebase/auth';
 
@@ -50,7 +51,11 @@ const GoogleIcon = () => (
 );
 
 const SignUp = () => {
-  const navigate = useNavigate();
+  const navigate   = useNavigate();
+  const dispatch   = useDispatch();
+
+  const loading    = useSelector(selectAuthLoading);
+  const reduxError = useSelector(selectAuthError);
 
   const [form, setForm] = useState({
     fullName: '', email: '', mobile: '', password: '', confirmPassword: '', role: '',
@@ -58,9 +63,7 @@ const SignUp = () => {
   const [errors, setErrors]     = useState({});
   const [showPwd, setShowPwd]   = useState(false);
   const [showCfm, setShowCfm]   = useState(false);
-  const [loading, setLoading]   = useState(false);
   const [gLoading, setGLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
   const [success, setSuccess]   = useState(false);
 
   const strength = pwdStrength(form.password);
@@ -69,12 +72,13 @@ const SignUp = () => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
     if (errors[name]) setErrors((p) => ({ ...p, [name]: '' }));
-    if (apiError) setApiError('');
+    dispatch(clearError());
   };
 
   const pickRole = (v) => {
     setForm((p) => ({ ...p, role: v }));
     if (errors.role) setErrors((p) => ({ ...p, role: '' }));
+    dispatch(clearError());
   };
 
   const validate = () => {
@@ -97,18 +101,16 @@ const SignUp = () => {
     e.preventDefault();
     const v = validate();
     if (Object.keys(v).length) { setErrors(v); return; }
-    try {
-      setLoading(true);
-      await signUpApi({
-        fullName: form.fullName.trim(), email: form.email.trim(),
-        mobile: form.mobile.trim(), password: form.password, role: form.role,
-      });
+    const result = await dispatch(signUp({
+      fullName: form.fullName.trim(),
+      email: form.email.trim(),
+      mobile: form.mobile.trim(),
+      password: form.password,
+      role: form.role,
+    }));
+    if (signUp.fulfilled.match(result)) {
       setSuccess(true);
       setTimeout(() => navigate('/signin'), 1500);
-    } catch (err) {
-      setApiError(err.response?.data?.message || 'Something went wrong');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -119,20 +121,19 @@ const SignUp = () => {
     }
     try {
       setGLoading(true);
-      setApiError('');
+      dispatch(clearError());
       const result = await signInWithPopup(auth, googleProvider);
       const { email, displayName, photoURL, uid } = result.user;
-      await googleSignInApi({
+      const action = await dispatch(googleSignIn({
         email,
         fullName: displayName || email.split('@')[0],
         avatar: photoURL || '',
         googleUid: uid,
         role: form.role,
-      });
-      navigate('/dashboard');
+      }));
+      if (googleSignIn.fulfilled.match(action)) navigate('/dashboard');
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') return;
-      setApiError(err.response?.data?.message || 'Google sign-up failed. Try again.');
     } finally {
       setGLoading(false);
     }
@@ -156,7 +157,7 @@ const SignUp = () => {
 
         {/* Google */}
         <button
-          type="button" onClick={handleGoogle} disabled={gLoading}
+          type="button" onClick={handleGoogle} disabled={gLoading || loading}
           className="w-full flex items-center justify-center gap-2.5 border border-[#DCDCDC] rounded-lg px-4 py-2.5 text-sm text-[#0F172A] bg-white hover:bg-[#F1F1F1] transition-colors mb-4 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <GoogleIcon />
@@ -175,15 +176,15 @@ const SignUp = () => {
             Account created! Redirecting…
           </p>
         )}
-        {apiError && (
+        {reduxError && (
           <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5 mb-4">
-            {apiError}
+            {reduxError}
           </p>
         )}
 
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
 
-          {/* Role buttons */}
+          {/* Role */}
           <Field label="I am a…" error={errors.role}>
             <div className="grid grid-cols-3 gap-2 mt-1">
               {ROLES.map(({ value, label, icon: Icon }) => {

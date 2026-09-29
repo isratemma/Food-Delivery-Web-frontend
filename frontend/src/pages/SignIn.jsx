@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { HiOutlineEye, HiOutlineEyeSlash } from 'react-icons/hi2';
-import { signInApi, googleSignInApi } from '../api/auth.api';
+import { signIn, googleSignIn, clearError, selectAuthLoading, selectAuthError } from '../store/slices/authSlice';
 import { auth, googleProvider } from '../lib/firebase';
 import { signInWithPopup } from 'firebase/auth';
 
@@ -15,19 +16,22 @@ const GoogleIcon = () => (
 );
 
 const SignIn = () => {
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const dispatch  = useDispatch();
+
+  const loading   = useSelector(selectAuthLoading);
+  const reduxError = useSelector(selectAuthError);
+
   const [form, setForm]       = useState({ email: '', password: '' });
   const [errors, setErrors]   = useState({});
   const [showPwd, setShowPwd] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [gLoading, setGLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
 
   const handle = (e) => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
     if (errors[name]) setErrors((p) => ({ ...p, [name]: '' }));
-    if (apiError) setApiError('');
+    dispatch(clearError());
   };
 
   const validate = () => {
@@ -43,37 +47,25 @@ const SignIn = () => {
     e.preventDefault();
     const v = validate();
     if (Object.keys(v).length) { setErrors(v); return; }
-    try {
-      setLoading(true);
-      await signInApi({ email: form.email.trim(), password: form.password });
-      navigate('/dashboard');
-    } catch (err) {
-      setApiError(err.response?.data?.message || 'Invalid email or password');
-    } finally {
-      setLoading(false);
-    }
+    const result = await dispatch(signIn({ email: form.email.trim(), password: form.password }));
+    if (signIn.fulfilled.match(result)) navigate('/dashboard');
   };
 
   const handleGoogle = async () => {
     try {
       setGLoading(true);
-      setApiError('');
+      dispatch(clearError());
       const result = await signInWithPopup(auth, googleProvider);
       const { email, displayName, photoURL, uid } = result.user;
-      const res = await googleSignInApi({
+      const action = await dispatch(googleSignIn({
         email,
         fullName: displayName || email.split('@')[0],
         avatar: photoURL || '',
         googleUid: uid,
-      });
-      if (res.data?.requiresRole) {
-        navigate('/signup');
-        return;
-      }
-      navigate('/dashboard');
+      }));
+      if (googleSignIn.fulfilled.match(action)) navigate('/dashboard');
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') return;
-      setApiError(err.response?.data?.message || 'Google sign-in failed. Try again.');
     } finally {
       setGLoading(false);
     }
@@ -97,7 +89,7 @@ const SignIn = () => {
 
         {/* Google */}
         <button
-          type="button" onClick={handleGoogle} disabled={gLoading}
+          type="button" onClick={handleGoogle} disabled={gLoading || loading}
           className="w-full flex items-center justify-center gap-2.5 border border-[#DCDCDC] rounded-lg px-4 py-2.5 text-sm text-[#0F172A] bg-white hover:bg-[#F1F1F1] transition-colors mb-4 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <GoogleIcon />
@@ -111,9 +103,10 @@ const SignIn = () => {
           <div className="flex-1 h-px bg-[#DCDCDC]" />
         </div>
 
-        {apiError && (
+        {/* Redux error */}
+        {reduxError && (
           <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5 mb-4">
-            {apiError}
+            {reduxError}
           </p>
         )}
 
@@ -147,8 +140,10 @@ const SignIn = () => {
             {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
           </div>
 
-          <button type="submit" disabled={loading}
-            className="w-full bg-[#5b3256] hover:bg-[#4a2845] text-white text-sm font-medium rounded-lg py-2.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1">
+          <button
+            type="submit" disabled={loading}
+            className="w-full bg-[#5b3256] hover:bg-[#4a2845] text-white text-sm font-medium rounded-lg py-2.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+          >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
