@@ -1,15 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createShop, updateShop, selectShopLoading, selectShopError, clearShopError } from '../../store/slices/shopSlice';
+import { HiOutlinePhoto } from 'react-icons/hi2';
+import {
+  createShop, updateShop,
+  selectShopLoading, selectShopError, clearShopError,
+} from '../../store/slices/shopSlice';
 
 const CATEGORIES = ['restaurant', 'cafe', 'bakery', 'grocery', 'pharmacy', 'other'];
 
-const inputCls = 'w-full border border-[#E4E4E4] rounded-xl px-3 py-2.5 text-sm text-[#0F172A] placeholder-[#BBBBBB] bg-white outline-none focus:border-[#5b3256] transition-colors';
+const FL = ({ children, req }) => (
+  <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wide mb-1.5">
+    {children}{req && <span className="text-red-400 ml-0.5">*</span>}
+  </label>
+);
+
+const FI = ({ className = '', ...p }) => (
+  <input className={`w-full bg-[#FDFAFF] border border-[#EDE8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#0F172A] placeholder-[#C4B9CC] outline-none focus:border-[#5b3256] focus:ring-2 focus:ring-[#5b3256]/10 transition-all ${className}`} {...p} />
+);
+
+const Section = ({ title, children }) => (
+  <div className="bg-white rounded-2xl border border-[#EDE8F0] overflow-hidden">
+    <div className="px-6 py-4 border-b border-[#F5F0F7]">
+      <p className="text-sm font-semibold text-[#0F172A]">{title}</p>
+    </div>
+    <div className="px-6 py-5 space-y-4">{children}</div>
+  </div>
+);
 
 const ShopForm = ({ shop }) => {
-  const dispatch  = useDispatch();
-  const loading   = useSelector(selectShopLoading);
-  const apiError  = useSelector(selectShopError);
+  const dispatch = useDispatch();
+  const loading  = useSelector(selectShopLoading);
+  const apiError = useSelector(selectShopError);
 
   const [form, setForm] = useState({
     name: '', description: '', category: 'restaurant', cuisine: '',
@@ -21,160 +42,152 @@ const ShopForm = ({ shop }) => {
   const [preview, setPreview] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Populate form when editing
   useEffect(() => {
     if (shop) {
       setForm({
-        name:        shop.name        || '',
-        description: shop.description || '',
-        category:    shop.category    || 'restaurant',
-        cuisine:     shop.cuisine     || '',
-        phone:       shop.phone       || '',
-        deliveryFee: shop.deliveryFee ?? 0,
-        minOrder:    shop.minOrder    ?? 0,
-        'address.street':  shop.address?.street  || '',
-        'address.city':    shop.address?.city    || '',
+        name: shop.name || '', description: shop.description || '',
+        category: shop.category || 'restaurant', cuisine: shop.cuisine || '',
+        phone: shop.phone || '', deliveryFee: shop.deliveryFee ?? 0,
+        minOrder: shop.minOrder ?? 0,
+        'address.street': shop.address?.street || '',
+        'address.city': shop.address?.city || '',
         'address.country': shop.address?.country || '',
-        'openingHours.open':  shop.openingHours?.open  || '09:00',
+        'openingHours.open': shop.openingHours?.open || '09:00',
         'openingHours.close': shop.openingHours?.close || '22:00',
       });
       setPreview(shop.image || '');
     }
   }, [shop]);
 
-  useEffect(() => {
-    return () => dispatch(clearShopError());
-  }, [dispatch]);
+  useEffect(() => () => dispatch(clearShopError()), [dispatch]);
 
-  const handle = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+  const handle = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
 
-  const handleImage = (e) => {
+  const handleImage = e => {
     const file = e.target.files[0];
     if (!file) return;
     setImage(file);
     setPreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     const fd = new FormData();
-
-    // Flatten nested fields into FormData
     Object.entries(form).forEach(([k, v]) => fd.append(k, v));
     if (image) fd.append('image', image);
-
     const action = shop
       ? await dispatch(updateShop({ id: shop._id, data: fd }))
       : await dispatch(createShop(fd));
-
     if (createShop.fulfilled.match(action) || updateShop.fulfilled.match(action)) {
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 2500);
+      setTimeout(() => setSuccess(false), 3000);
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-[#F0E8E4] p-6">
-      <h2 className="text-base font-semibold text-[#0F172A] mb-5">
-        {shop ? 'Edit Shop' : 'Create Your Shop'}
-      </h2>
+    <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-4">
 
       {apiError && (
-        <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5 mb-4">{apiError}</p>
+        <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3 flex items-center gap-2">
+          <span className="text-base">⚠️</span>{apiError}
+        </div>
       )}
       {success && (
-        <p className="text-sm text-green-600 bg-green-50 border border-green-100 rounded-xl px-3 py-2.5 mb-4">
-          Shop {shop ? 'updated' : 'created'} successfully!
-        </p>
+        <div className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 flex items-center gap-2">
+          <span className="text-base">✅</span> Shop {shop ? 'updated' : 'created'} successfully!
+        </div>
       )}
 
-      <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-4">
-
-        {/* Image upload */}
-        <div>
-          <label className="block text-sm font-medium text-[#0F172A] mb-2">Shop Image</label>
-          <div className="flex items-center gap-4">
+      {/* Cover photo */}
+      <Section title="Cover Photo">
+        <div className="flex items-center gap-5">
+          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-[#F8F5FC] border-2 border-dashed border-[#D4C8DC] flex items-center justify-center shrink-0">
             {preview
-              ? <img src={preview} alt="preview" className="w-20 h-20 rounded-xl object-cover border border-[#E4E4E4]" />
-              : <div className="w-20 h-20 rounded-xl bg-[#F8FAFC] border border-dashed border-[#DCDCDC] flex items-center justify-center text-2xl">🏪</div>
+              ? <img src={preview} alt="" className="w-full h-full object-cover" />
+              : <HiOutlinePhoto size={28} className="text-[#C4B9CC]" />
             }
-            <label className="cursor-pointer text-sm font-medium text-[#5b3256] hover:underline">
-              {preview ? 'Change image' : 'Upload image'}
+          </div>
+          <div>
+            <label className="cursor-pointer inline-flex items-center gap-2 bg-[#5b3256] hover:bg-[#4a2845] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors">
+              <HiOutlinePhoto size={15} />
+              {preview ? 'Change Photo' : 'Upload Photo'}
               <input type="file" accept="image/*" onChange={handleImage} className="hidden" />
             </label>
+            <p className="text-xs text-[#94A3B8] mt-2">JPG, PNG or WebP · Max 5 MB</p>
           </div>
         </div>
+      </Section>
 
-        {/* Row 1 */}
+      {/* Basic info */}
+      <Section title="Basic Information">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-[#0F172A] mb-1.5">Shop Name <span className="text-red-500">*</span></label>
-            <input name="name" value={form.name} onChange={handle} required placeholder="e.g. Burger House" className={inputCls} />
+            <FL req>Shop Name</FL>
+            <FI name="name" value={form.name} onChange={handle} required placeholder="e.g. Burger House" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#0F172A] mb-1.5">Category</label>
-            <select name="category" value={form.category} onChange={handle} className={inputCls}>
+            <FL>Category</FL>
+            <select name="category" value={form.category} onChange={handle}
+              className="w-full bg-[#FDFAFF] border border-[#EDE8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#0F172A] outline-none focus:border-[#5b3256] focus:ring-2 focus:ring-[#5b3256]/10 transition-all">
               {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
             </select>
           </div>
         </div>
-
-        {/* Row 2 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-[#0F172A] mb-1.5">Cuisine</label>
-            <input name="cuisine" value={form.cuisine} onChange={handle} placeholder="e.g. Italian, Bangladeshi" className={inputCls} />
+            <FL>Cuisine Type</FL>
+            <FI name="cuisine" value={form.cuisine} onChange={handle} placeholder="e.g. Italian, Bangladeshi" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#0F172A] mb-1.5">Phone</label>
-            <input name="phone" value={form.phone} onChange={handle} placeholder="01xxxxxxxxx" className={inputCls} />
+            <FL>Phone</FL>
+            <FI name="phone" value={form.phone} onChange={handle} placeholder="01xxxxxxxxx" />
           </div>
         </div>
-
-        {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-[#0F172A] mb-1.5">Description</label>
-          <textarea name="description" value={form.description} onChange={handle}
-            placeholder="Tell customers about your shop…" rows={3}
-            className={inputCls + ' resize-none'} />
+          <FL>Description</FL>
+          <textarea name="description" value={form.description} onChange={handle} rows={3}
+            placeholder="Tell customers about your shop…"
+            className="w-full bg-[#FDFAFF] border border-[#EDE8F0] rounded-xl px-3.5 py-2.5 text-sm text-[#0F172A] placeholder-[#C4B9CC] outline-none focus:border-[#5b3256] focus:ring-2 focus:ring-[#5b3256]/10 transition-all resize-none" />
         </div>
+      </Section>
 
-        {/* Address */}
+      {/* Address */}
+      <Section title="Address">
         <div>
-          <p className="text-sm font-medium text-[#0F172A] mb-2">Address</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <input name="address.street"  value={form['address.street']}  onChange={handle} placeholder="Street"  className={inputCls} />
-            <input name="address.city"    value={form['address.city']}    onChange={handle} placeholder="City"    className={inputCls} />
-            <input name="address.country" value={form['address.country']} onChange={handle} placeholder="Country" className={inputCls} />
+          <FL>Street</FL>
+          <FI name="address.street" value={form['address.street']} onChange={handle} placeholder="123 Main Street" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <FL req>City</FL>
+            <FI name="address.city" value={form['address.city']} onChange={handle} placeholder="Dhaka" />
+          </div>
+          <div>
+            <FL>Country</FL>
+            <FI name="address.country" value={form['address.country']} onChange={handle} placeholder="Bangladesh" />
           </div>
         </div>
+      </Section>
 
-        {/* Fees + Hours */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div>
-            <label className="block text-xs font-medium text-[#64748B] mb-1.5">Delivery Fee (৳)</label>
-            <input type="number" name="deliveryFee" value={form.deliveryFee} onChange={handle} min={0} className={inputCls} />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-[#64748B] mb-1.5">Min Order (৳)</label>
-            <input type="number" name="minOrder" value={form.minOrder} onChange={handle} min={0} className={inputCls} />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-[#64748B] mb-1.5">Opens at</label>
-            <input type="time" name="openingHours.open" value={form['openingHours.open']} onChange={handle} className={inputCls} />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-[#64748B] mb-1.5">Closes at</label>
-            <input type="time" name="openingHours.close" value={form['openingHours.close']} onChange={handle} className={inputCls} />
-          </div>
+      {/* Hours & fees */}
+      <Section title="Hours & Fees">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div><FL>Opens At</FL><FI type="time" name="openingHours.open" value={form['openingHours.open']} onChange={handle} /></div>
+          <div><FL>Closes At</FL><FI type="time" name="openingHours.close" value={form['openingHours.close']} onChange={handle} /></div>
+          <div><FL>Delivery Fee (৳)</FL><FI type="number" name="deliveryFee" value={form.deliveryFee} onChange={handle} min={0} /></div>
+          <div><FL>Min Order (৳)</FL><FI type="number" name="minOrder" value={form.minOrder} onChange={handle} min={0} /></div>
         </div>
+      </Section>
 
-        <button type="submit" disabled={loading}
-          className="bg-[#5b3256] hover:bg-[#4a2845] text-white text-sm font-medium px-6 py-2.5 rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+      {/* Submit */}
+      <div className="flex items-center gap-3 pt-1">
+        <button type="submit" disabled={loading || success}
+          className="bg-[#5b3256] hover:bg-[#4a2845] text-white text-sm font-semibold px-7 py-2.5 rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
           {loading ? 'Saving…' : shop ? 'Save Changes' : 'Create Shop'}
         </button>
-      </form>
-    </div>
+        {success && <p className="text-sm text-emerald-600 font-medium">Saved!</p>}
+      </div>
+    </form>
   );
 };
 
