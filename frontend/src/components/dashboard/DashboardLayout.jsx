@@ -18,6 +18,7 @@ import {
   HiOutlinePlus,
 } from 'react-icons/hi2';
 import { signOut, selectUser } from '../../store/slices/authSlice';
+import ComingSoon from './ComingSoon';
 
 const MAIN_NAV = [
   { to: '/dashboard',          label: 'Dashboard',       icon: HiOutlineSquares2X2,           end: true  },
@@ -77,6 +78,7 @@ const DashboardLayout = ({ children }) => {
   const navigate  = useNavigate();
   const user      = useSelector(selectUser);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [comingSoon, setComingSoon] = useState(null);
 
   const handleSignOut = async () => {
     await dispatch(signOut());
@@ -144,6 +146,7 @@ const DashboardLayout = ({ children }) => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F5F6FA]">
+      <ComingSoon feature={comingSoon} onClose={() => setComingSoon(null)} />
 
       {/* Desktop sidebar */}
       <aside
@@ -182,10 +185,14 @@ const DashboardLayout = ({ children }) => {
           </div>
 
           <div className="flex items-center gap-2.5 ml-auto">
-            <button className="hidden sm:flex items-center gap-1.5 bg-[#5b3256] hover:bg-[#4a2845] text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm shadow-[#5b3256]/20">
+            <button
+              onClick={() => setComingSoon('New Order (POS)')}
+              className="hidden sm:flex items-center gap-1.5 bg-[#5b3256] hover:bg-[#4a2845] text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm shadow-[#5b3256]/20">
               <HiOutlinePlus size={14} /> New order
             </button>
-            <button className="relative w-9 h-9 rounded-xl bg-[#F5F6FA] flex items-center justify-center text-gray-400 hover:bg-[#f5eef4] hover:text-[#5b3256] transition-colors">
+            <button
+              onClick={() => setComingSoon('Notifications')}
+              className="relative w-9 h-9 rounded-xl bg-[#F5F6FA] flex items-center justify-center text-gray-400 hover:bg-[#f5eef4] hover:text-[#5b3256] transition-colors">
               <HiOutlineBell size={18} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#5b3256] rounded-full" />
             </button>
