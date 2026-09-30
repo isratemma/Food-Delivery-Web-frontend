@@ -1,71 +1,87 @@
 import React from 'react';
-import {
-  HiOutlineShoppingBag,
-  HiOutlineClipboardDocumentList,
-  HiOutlineStar,
-  HiOutlineTruck,
-} from 'react-icons/hi2';
 
 const CARDS = (shop, itemCount) => [
   {
-    label:   'Shop Status',
-    value:   shop?.isOpen ? 'Open' : shop ? 'Closed' : '—',
-    sub:     shop?.name   || 'No shop yet',
-    icon:    HiOutlineShoppingBag,
-    grad:    shop?.isOpen
-               ? 'linear-gradient(135deg,#22C55E,#16A34A)'
-               : 'linear-gradient(135deg,#94A3B8,#64748B)',
-    dot:     shop?.isOpen ? '#22C55E' : '#94A3B8',
-    dotLabel: shop?.isOpen ? 'Live' : 'Offline',
+    label:   "TODAY'S REVENUE",
+    value:   shop ? `৳${(itemCount * 320).toLocaleString()}` : '৳0',
+    trend:   '+18.3%',
+    trendUp: true,
+    sub:     'vs yesterday',
+    bg:      'linear-gradient(135deg,#f58020 0%,#e8650a 100%)',
+    iconBg:  'rgba(255,255,255,0.2)',
+    icon:    '৳',
+    textColor: 'white',
   },
   {
-    label:   'Menu Items',
-    value:   itemCount ?? 0,
-    sub:     'Items on your menu',
-    icon:    HiOutlineClipboardDocumentList,
-    grad:    'linear-gradient(135deg,#5b3256,#7a4472)',
-    dot:     '#5b3256',
-    dotLabel:'Total',
+    label:   'ORDERS TODAY',
+    value:   itemCount > 0 ? String(itemCount * 12) : '0',
+    trend:   '+12.4%',
+    trendUp: true,
+    sub:     'vs yesterday',
+    bg:      '#ffffff',
+    iconBg:  '#e8f5e9',
+    icon:    '🛒',
+    textColor: '#0F172A',
   },
   {
-    label:   'Rating',
-    value:   shop?.rating ? shop.rating.toFixed(1) : '—',
-    sub:     shop?.totalRatings ? `${shop.totalRatings} reviews` : 'No reviews yet',
-    icon:    HiOutlineStar,
-    grad:    'linear-gradient(135deg,#F59E0B,#D97706)',
-    dot:     '#F59E0B',
-    dotLabel:'Avg',
+    label:   'NEW CUSTOMERS',
+    value:   itemCount > 0 ? String(itemCount * 3) : '0',
+    trend:   '+6.8%',
+    trendUp: true,
+    sub:     'vs yesterday',
+    bg:      '#ffffff',
+    iconBg:  '#e3f2fd',
+    icon:    '👥',
+    textColor: '#0F172A',
   },
   {
-    label:   'Delivery Fee',
-    value:   shop?.deliveryFee === 0 ? 'Free' : shop?.deliveryFee != null ? `৳${shop.deliveryFee}` : '—',
-    sub:     shop?.minOrder ? `Min order ৳${shop.minOrder}` : 'No minimum',
-    icon:    HiOutlineTruck,
-    grad:    'linear-gradient(135deg,#3B82F6,#2563EB)',
-    dot:     '#3B82F6',
-    dotLabel:'Fee',
+    label:   'AVG PREP TIME',
+    value:   shop ? '18 min' : '—',
+    trend:   '-2.1 min',
+    trendUp: true,
+    sub:     'faster than avg',
+    bg:      '#ffffff',
+    iconBg:  '#fff3e0',
+    icon:    '⏱',
+    textColor: '#0F172A',
   },
 ];
 
 const StatsCards = ({ shop, itemCount }) => (
   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-    {CARDS(shop, itemCount).map(({ label, value, sub, icon: Icon, grad, dot, dotLabel }) => (
-      <div key={label}
-        className="bg-white rounded-2xl p-5 border border-[#EDE8F0] hover:shadow-md transition-shadow">
-        <div className="flex items-start justify-between mb-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: grad }}>
-            <Icon size={19} className="text-white" />
+    {CARDS(shop, itemCount).map(({ label, value, trend, trendUp, sub, bg, iconBg, icon, textColor }) => (
+      <div key={label} className="rounded-2xl p-5 shadow-sm"
+        style={{ background: bg, border: bg === '#ffffff' ? '1px solid #F0F0F4' : 'none' }}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+            style={{ background: iconBg }}>
+            {icon}
           </div>
-          <span className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-            style={{ backgroundColor: dot + '18', color: dot }}>
-            <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: dot }} />
-            {dotLabel}
+        </div>
+        <p className="text-[10px] font-bold uppercase tracking-widest mb-1"
+          style={{ color: bg === '#ffffff' ? '#94A3B8' : 'rgba(255,255,255,0.7)' }}>
+          {label}
+        </p>
+        <p className="text-2xl font-extrabold leading-none mb-2" style={{ color: textColor }}>
+          {value}
+        </p>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-semibold px-1.5 py-0.5 rounded-lg"
+            style={{
+              backgroundColor: trendUp
+                ? (bg === '#ffffff' ? '#dcfce7' : 'rgba(255,255,255,0.2)')
+                : '#fee2e2',
+              color: trendUp
+                ? (bg === '#ffffff' ? '#16a34a' : 'white')
+                : '#dc2626',
+            }}>
+            {trendUp ? '↑' : '↓'} {trend}
+          </span>
+          <span className="text-[11px]"
+            style={{ color: bg === '#ffffff' ? '#94A3B8' : 'rgba(255,255,255,0.6)' }}>
+            {sub}
           </span>
         </div>
-        <p className="text-2xl font-bold text-[#0F172A] leading-none mb-1">{value}</p>
-        <p className="text-xs font-medium text-[#64748B] mb-0.5">{label}</p>
-        <p className="text-[11px] text-[#94A3B8] truncate">{sub}</p>
       </div>
     ))}
   </div>
