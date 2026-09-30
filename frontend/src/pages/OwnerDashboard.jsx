@@ -480,14 +480,33 @@ const Settings = () => {
   );
 };
 
+/* ── Coming Soon page (operations routes) ───────────────────── */
+const ComingSoonPage = ({ title, icon, desc }) => (
+  <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+    <div className="w-20 h-20 rounded-3xl bg-[#f5eef4] flex items-center justify-center mb-5 text-5xl">
+      {icon}
+    </div>
+    <h1 className="text-2xl font-bold text-[#0F172A] mb-2">{title}</h1>
+    <p className="text-sm text-[#94A3B8] max-w-xs mb-6">{desc}</p>
+    <div className="inline-flex items-center gap-2 bg-[#f5eef4] text-[#5b3256] text-xs font-bold px-4 py-2 rounded-full">
+      🚀 Coming soon
+    </div>
+  </div>
+);
+
 /* ── Root ───────────────────────────────────────────────────── */
 const OwnerDashboard = () => (
   <DashboardLayout>
     <Routes>
-      <Route index           element={<Overview />}  />
-      <Route path="shop"     element={<MyShop />}    />
-      <Route path="items"    element={<MenuItems />} />
-      <Route path="settings" element={<Settings />}  />
+      <Route index              element={<Overview />}  />
+      <Route path="shop"        element={<MyShop />}    />
+      <Route path="items"       element={<MenuItems />} />
+      <Route path="settings"    element={<Settings />}  />
+      {/* Operations — coming soon pages */}
+      <Route path="delivery"    element={<ComingSoonPage title="Delivery"    icon="🚴" desc="Manage and track all your deliveries in real time." />} />
+      <Route path="customers"   element={<ComingSoonPage title="Customers"   icon="👥" desc="View customer profiles, order history and feedback." />} />
+      <Route path="promos"      element={<ComingSoonPage title="Promotions"  icon="🎁" desc="Create coupons, discounts and promotional campaigns." />} />
+      <Route path="analytics"   element={<ComingSoonPage title="Reports"     icon="📊" desc="Sales analytics, revenue charts and performance data." />} />
     </Routes>
   </DashboardLayout>
 );
