@@ -2,11 +2,13 @@ import React, { useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
-import Home           from './pages/Home';
-import SignUp         from './pages/SignUp';
-import SignIn         from './pages/SignIn';
-import OwnerDashboard from './pages/OwnerDashboard';
-import ProtectedRoute from './components/ProtectedRoute';
+import Home                from './pages/Home';
+import SignUp               from './pages/SignUp';
+import SignIn               from './pages/SignIn';
+import OwnerDashboard       from './pages/OwnerDashboard';
+import CreateEditShopPage   from './pages/CreateEditShopPage';
+import FoodPage             from './pages/FoodPage';
+import ProtectedRoute       from './components/ProtectedRoute';
 
 import { fetchMe, selectAuthChecked } from './store/slices/authSlice';
 
@@ -35,7 +37,7 @@ const App = () => {
       <Route path="/signup" element={<SignUp />} />
       <Route path="/signin" element={<SignIn />} />
 
-      {/* Owner-only dashboard — nested routes handled inside OwnerDashboard */}
+      {/* Owner-only dashboard */}
       <Route
         path="/dashboard/*"
         element={
@@ -44,6 +46,19 @@ const App = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* Owner — create / edit shop */}
+      <Route
+        path="/shop/edit"
+        element={
+          <ProtectedRoute role="owner">
+            <CreateEditShopPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Public — restaurant detail + menu */}
+      <Route path="/restaurant/:id" element={<FoodPage />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

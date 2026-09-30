@@ -164,7 +164,7 @@ const Home = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {RESTAURANTS.map(r => (
-            <Link to={`/restaurant/${r.id}`} key={r.id}
+          <Link to={`/restaurant/${r.id}`} key={r.id}
               className="bg-white rounded-2xl border border-[#f0e8e4] overflow-hidden hover:shadow-md transition-shadow group">
               {/* Image placeholder */}
               <div className="h-40 flex items-center justify-center text-6xl"
