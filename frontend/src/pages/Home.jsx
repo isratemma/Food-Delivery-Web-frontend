@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   HiOutlineClock,
   HiOutlineStar,
@@ -11,8 +11,9 @@ import {
 } from 'react-icons/hi2';
 import Navbar from '../components/Navbar';
 import { selectUser, selectIsAuth } from '../store/slices/authSlice';
+import { fetchAllShops, selectShops, selectShopLoading } from '../store/slices/shopSlice';
 
-/* ── Sample data ─────────────────────────────────────────── */
+/* ── Categories ─────────────────────────────────────────── */
 const CATEGORIES = [
   { id: 1, name: 'Burger',   emoji: '🍔' },
   { id: 2, name: 'Pizza',    emoji: '🍕' },
@@ -24,40 +25,102 @@ const CATEGORIES = [
   { id: 8, name: 'Salad',    emoji: '🥗' },
 ];
 
-const RESTAURANTS = [
-  { id: 1, name: 'Burger House',    cuisine: 'American · Burgers',  rating: 4.8, time: '20–30', delivery: 'Free delivery',   tag: 'Popular',  color: '#fff3f0' },
-  { id: 2, name: 'Pizza Palace',    cuisine: 'Italian · Pizza',     rating: 4.6, time: '25–35', delivery: '৳30 delivery',     tag: 'New',      color: '#fff8f0' },
-  { id: 3, name: 'Sushi Garden',    cuisine: 'Japanese · Sushi',    rating: 4.9, time: '30–40', delivery: 'Free delivery',   tag: 'Top Rated',color: '#f0fff4' },
-  { id: 4, name: 'Dhaka Kitchen',   cuisine: 'Bangladeshi · Rice',  rating: 4.7, time: '15–25', delivery: '৳20 delivery',    tag: 'Trending', color: '#fdf0ff' },
-  { id: 5, name: 'Noodle Station',  cuisine: 'Chinese · Noodles',   rating: 4.5, time: '20–30', delivery: 'Free delivery',   tag: 'Popular',  color: '#f0f8ff' },
-  { id: 6, name: 'Sweet Corner',    cuisine: 'Desserts · Cakes',    rating: 4.7, time: '15–20', delivery: '৳15 delivery',    tag: 'New',      color: '#fff0f8' },
-];
-
 const HOW_IT_WORKS = [
-  { icon: HiOutlineTruck,       title: 'Choose a restaurant', desc: 'Browse hundreds of restaurants near your location.' },
-  { icon: HiOutlineFire,        title: 'Pick your meal',      desc: 'Select from a wide variety of fresh, delicious food.' },
-  { icon: HiOutlineShieldCheck, title: 'Fast delivery',       desc: 'Your food arrives hot and fresh right at your door.' },
+  { icon: HiOutlineTruck,       title: 'Choose a restaurant', desc: 'Browse restaurants near your location.' },
+  { icon: HiOutlineFire,        title: 'Pick your meal',      desc: 'Select from a wide variety of fresh food.' },
+  { icon: HiOutlineShieldCheck, title: 'Fast delivery',       desc: 'Your food arrives hot right at your door.' },
 ];
 
 /* ── Tag badge ───────────────────────────────────────────── */
 const Tag = ({ label }) => {
-  const colors = {
-    Popular:   'bg-orange-50 text-orange-600',
-    New:       'bg-green-50 text-green-600',
+  const map = {
+    Popular:    'bg-[#f5eef4] text-[#5b3256]',
+    New:        'bg-green-50 text-green-600',
     'Top Rated':'bg-blue-50 text-blue-600',
-    Trending:  'bg-purple-50 text-purple-600',
+    Trending:   'bg-violet-50 text-violet-600',
   };
   return (
-    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${colors[label] || 'bg-gray-100 text-gray-500'}`}>
+    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${map[label] || 'bg-gray-100 text-gray-500'}`}>
       {label}
     </span>
   );
 };
 
-/* ── Main page ───────────────────────────────────────────── */
+/* ── Shop card (real data) ───────────────────────────────── */
+const ShopCard = ({ shop, index }) => {
+  const tags    = ['Popular', 'New', 'Top Rated', 'Trending'];
+  const tag     = tags[index % tags.length];
+  const bgColors = ['#f5eef4', '#f0fff4', '#f0f8ff', '#fdf0ff', '#fff8f0', '#f0fdf4'];
+  const bg      = bgColors[index % bgColors.length];
+
+  return (
+    <Link to={`/restaurant/${shop._id}`}
+      className="bg-white rounded-2xl border border-[#f0e8e4] overflow-hidden hover:shadow-md transition-shadow group">
+      {/* Image */}
+      <div className="h-40 overflow-hidden relative" style={{ backgroundColor: bg }}>
+        {shop.image
+          ? <img src={shop.image} alt={shop.name} className="w-full h-full object-cover" />
+          : <div className="w-full h-full flex items-center justify-center text-6xl">🍽️</div>
+        }
+        {/* Open/closed badge */}
+        <span className={`absolute top-3 left-3 text-[10px] font-bold px-2 py-0.5 rounded-full
+          ${shop.isOpen ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}`}>
+          {shop.isOpen ? 'Open' : 'Closed'}
+        </span>
+      </div>
+
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-1">
+          <h3 className="font-semibold text-[#0F172A] group-hover:text-[#5b3256] transition-colors truncate max-w-[140px]">
+            {shop.name}
+          </h3>
+          <Tag label={tag} />
+        </div>
+        <p className="text-xs text-[#64748B] mb-3">
+          {shop.cuisine || shop.category}
+          {shop.address?.city ? ` · ${shop.address.city}` : ''}
+        </p>
+        <div className="flex items-center gap-4 text-xs text-[#64748B]">
+          <span className="flex items-center gap-1">
+            <HiOutlineStar size={13} className="text-yellow-400" />
+            {shop.rating?.toFixed(1) || '—'}
+          </span>
+          <span className="flex items-center gap-1">
+            <HiOutlineClock size={13} />
+            {shop.openingHours?.open ?? '—'} – {shop.openingHours?.close ?? '—'}
+          </span>
+          <span className={shop.deliveryFee === 0 ? 'text-green-600 font-medium' : ''}>
+            {shop.deliveryFee === 0 ? 'Free delivery' : `৳${shop.deliveryFee}`}
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+/* ── Skeleton card ───────────────────────────────────────── */
+const SkeletonCard = () => (
+  <div className="bg-white rounded-2xl border border-[#f0e8e4] overflow-hidden animate-pulse">
+    <div className="h-40 bg-gray-100" />
+    <div className="p-4 space-y-2">
+      <div className="h-4 bg-gray-100 rounded w-3/4" />
+      <div className="h-3 bg-gray-100 rounded w-1/2" />
+      <div className="h-3 bg-gray-100 rounded w-2/3" />
+    </div>
+  </div>
+);
+
+/* ── Main ────────────────────────────────────────────────── */
 const Home = () => {
-  const isAuth = useSelector(selectIsAuth);
-  const user   = useSelector(selectUser);
+  const dispatch  = useDispatch();
+  const isAuth    = useSelector(selectIsAuth);
+  const user      = useSelector(selectUser);
+  const shops     = useSelector(selectShops);
+  const loading   = useSelector(selectShopLoading);
+
+  useEffect(() => {
+    dispatch(fetchAllShops({ limit: 12 }));
+  }, [dispatch]);
 
   return (
     <div className="min-h-screen bg-[#fff8f6]">
@@ -66,8 +129,6 @@ const Home = () => {
       {/* ── Hero ── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-10">
         <div className="flex flex-col lg:flex-row items-center gap-10">
-
-          {/* Text */}
           <div className="flex-1 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 bg-[#f5eef4] text-[#5b3256] text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
               <HiOutlineFire size={14} />
@@ -90,13 +151,11 @@ const Home = () => {
                 Browse restaurants <HiArrowRight size={15} />
               </Link>
             </div>
-
-            {/* Stats */}
             <div className="flex gap-8 mt-10 justify-center lg:justify-start">
               {[
-                { value: '500+', label: 'Restaurants' },
-                { value: '50K+', label: 'Happy customers' },
-                { value: '30 min', label: 'Avg. delivery' },
+                { value: `${shops.length || '0'}+`, label: 'Restaurants' },
+                { value: '50K+',   label: 'Happy customers' },
+                { value: '30 min', label: 'Avg. delivery'   },
               ].map(s => (
                 <div key={s.label}>
                   <p className="text-xl font-bold text-[#0F172A]">{s.value}</p>
@@ -106,16 +165,11 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Hero illustration */}
+          {/* Hero visual */}
           <div className="flex-1 flex justify-center">
             <div className="relative w-72 h-72 sm:w-80 sm:h-80">
-              {/* Background circle */}
               <div className="absolute inset-0 rounded-full bg-[#f5eef4]" />
-              {/* Big emoji */}
-              <div className="absolute inset-0 flex items-center justify-center text-8xl">
-                🍔
-              </div>
-              {/* Floating cards */}
+              <div className="absolute inset-0 flex items-center justify-center text-8xl">🍔</div>
               <div className="absolute -top-2 -right-4 bg-white rounded-2xl shadow-md px-3 py-2 flex items-center gap-2">
                 <span className="text-xl">⭐</span>
                 <div>
@@ -154,48 +208,36 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── Featured restaurants ── */}
+      {/* ── Restaurants (real data) ── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-[#0F172A]">Popular near you</h2>
+          <h2 className="text-xl font-bold text-[#0F172A]">
+            {shops.length > 0 ? 'Popular near you' : 'Restaurants'}
+          </h2>
           <Link to="/restaurants" className="text-sm text-[#5b3256] font-medium hover:underline flex items-center gap-1">
             See all <HiArrowRight size={14} />
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {RESTAURANTS.map(r => (
-          <Link to={`/restaurant/${r.id}`} key={r.id}
-              className="bg-white rounded-2xl border border-[#f0e8e4] overflow-hidden hover:shadow-md transition-shadow group">
-              {/* Image placeholder */}
-              <div className="h-40 flex items-center justify-center text-6xl"
-                style={{ backgroundColor: r.color }}>
-                🍽️
-              </div>
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-1">
-                  <h3 className="font-semibold text-[#0F172A] group-hover:text-[#5b3256] transition-colors">
-                    {r.name}
-                  </h3>
-                  <Tag label={r.tag} />
-                </div>
-                <p className="text-xs text-[#64748B] mb-3">{r.cuisine}</p>
-                <div className="flex items-center gap-4 text-xs text-[#64748B]">
-                  <span className="flex items-center gap-1">
-                    <HiOutlineStar size={13} className="text-yellow-400" />
-                    {r.rating}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <HiOutlineClock size={13} />
-                    {r.time} min
-                  </span>
-                  <span className={r.delivery === 'Free delivery' ? 'text-green-600 font-medium' : ''}>
-                    {r.delivery}
-                  </span>
-                </div>
-              </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : shops.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {shops.map((shop, i) => <ShopCard key={shop._id} shop={shop} index={i} />)}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <span className="text-6xl mb-4">🏪</span>
+            <p className="text-lg font-semibold text-[#0F172A] mb-2">No restaurants yet</p>
+            <p className="text-sm text-[#64748B] mb-6">Be the first to list your restaurant on VingoLink</p>
+            <Link to="/signup"
+              className="bg-[#5b3256] hover:bg-[#4a2845] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
+              Join as an owner
             </Link>
-          ))}
-        </div>
+          </div>
+        )}
       </section>
 
       {/* ── How it works ── */}
@@ -222,7 +264,7 @@ const Home = () => {
           <div className="bg-[#5b3256] rounded-3xl px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>
               <h3 className="text-2xl font-bold text-white mb-1">Ready to order?</h3>
-              <p className="text-purple-200 text-sm">Sign up and get free delivery on your first order.</p>
+              <p className="text-[#d4b5cc] text-sm">Sign up and get free delivery on your first order.</p>
             </div>
             <Link to="/signup"
               className="bg-white text-[#5b3256] font-bold px-6 py-3 rounded-xl hover:bg-[#f5eef4] transition-colors text-sm whitespace-nowrap">
@@ -239,9 +281,7 @@ const Home = () => {
           <p className="text-sm text-[#94A3B8]">© 2026 VingoLink. All rights reserved.</p>
           <div className="flex gap-5">
             {['Privacy', 'Terms', 'Contact'].map(l => (
-              <Link key={l} to="#" className="text-sm text-[#64748B] hover:text-[#5b3256] transition-colors">
-                {l}
-              </Link>
+              <Link key={l} to="#" className="text-sm text-[#64748B] hover:text-[#5b3256] transition-colors">{l}</Link>
             ))}
           </div>
         </div>
