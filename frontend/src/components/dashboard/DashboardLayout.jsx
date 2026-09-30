@@ -54,7 +54,7 @@ const NavItem = ({ to, label, icon: Icon, end = false, badge, onClick }) => (
         </span>
         <span className="flex items-center gap-1.5">
           {badge && (
-            <span className="bg-white text-orange-500 text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+            <span className="bg-white text-[#5b3256] text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
               {badge}
             </span>
           )}
@@ -148,7 +148,7 @@ const DashboardLayout = ({ children }) => {
       {/* Desktop sidebar */}
       <aside
         className="hidden md:flex flex-col w-52 h-full shrink-0"
-        style={{ background: 'linear-gradient(160deg,#c75000 0%,#e8650a 40%,#f58020 100%)' }}
+        style={{ background: 'linear-gradient(160deg,#3d1f3a 0%,#5b3256 60%,#7a4472 100%)' }}
       >
         <SidebarContent />
       </aside>
@@ -157,7 +157,7 @@ const DashboardLayout = ({ children }) => {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
           <aside className="w-56 h-full shadow-2xl"
-            style={{ background: 'linear-gradient(160deg,#c75000 0%,#e8650a 40%,#f58020 100%)' }}>
+            style={{ background: 'linear-gradient(160deg,#3d1f3a 0%,#5b3256 60%,#7a4472 100%)' }}>
             <SidebarContent mobile />
           </aside>
           <div className="flex-1 bg-black/40" onClick={close} />
@@ -182,14 +182,14 @@ const DashboardLayout = ({ children }) => {
           </div>
 
           <div className="flex items-center gap-2.5 ml-auto">
-            <button className="hidden sm:flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm shadow-orange-200">
+            <button className="hidden sm:flex items-center gap-1.5 bg-[#5b3256] hover:bg-[#4a2845] text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm shadow-[#5b3256]/20">
               <HiOutlinePlus size={14} /> New order
             </button>
-            <button className="relative w-9 h-9 rounded-xl bg-[#F5F6FA] flex items-center justify-center text-gray-400 hover:bg-orange-50 hover:text-orange-500 transition-colors">
+            <button className="relative w-9 h-9 rounded-xl bg-[#F5F6FA] flex items-center justify-center text-gray-400 hover:bg-[#f5eef4] hover:text-[#5b3256] transition-colors">
               <HiOutlineBell size={18} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#5b3256] rounded-full" />
             </button>
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-[#5b3256] flex items-center justify-center text-white text-xs font-bold">
               {user?.avatar ? <img src={user.avatar} alt="" className="w-8 h-8 object-cover" /> : initials}
             </div>
           </div>

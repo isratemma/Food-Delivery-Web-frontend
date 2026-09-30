@@ -38,7 +38,7 @@ const QuickAction = ({ icon, label, sub, bg, onClick }) => (
 /* ── Spotlight item card ──────────────────────────────────── */
 const SpotlightCard = ({ item }) => (
   <div className="bg-white rounded-2xl border border-[#F0F0F4] overflow-hidden hover:shadow-md transition-shadow">
-    <div className="h-32 overflow-hidden bg-gradient-to-br from-orange-50 to-orange-100 relative">
+    <div className="h-32 overflow-hidden bg-gradient-to-br from-[#f5eef4] to-[#ede0eb] relative">
       {item.image
         ? <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
         : <div className="w-full h-full flex items-center justify-center text-5xl">🍽️</div>
@@ -53,7 +53,7 @@ const SpotlightCard = ({ item }) => (
     <div className="p-3">
       <p className="text-sm font-semibold text-[#0F172A] truncate">{item.name}</p>
       <div className="flex items-center justify-between mt-1">
-        <span className="text-sm font-bold text-orange-500">৳{item.price}</span>
+        <span className="text-sm font-bold text-[#5b3256]">৳{item.price}</span>
         <span className="flex items-center gap-0.5 text-xs text-[#94A3B8]">
           <HiOutlineStar size={11} className="text-yellow-400" />
           {item.rating?.toFixed(1) || '4.8'}
@@ -66,7 +66,7 @@ const SpotlightCard = ({ item }) => (
 /* ── Review card ──────────────────────────────────────────── */
 const ReviewCard = ({ name, text, rating, avatar }) => (
   <div className="flex gap-3 py-3 border-b border-[#F5F6FA] last:border-0">
-    <div className="w-8 h-8 rounded-full overflow-hidden bg-orange-100 flex items-center justify-center shrink-0 text-sm font-bold text-orange-600">
+    <div className="w-8 h-8 rounded-full overflow-hidden bg-[#ede0eb] flex items-center justify-center shrink-0 text-sm font-bold text-[#4a2845]">
       {avatar || name?.[0]}
     </div>
     <div className="flex-1 min-w-0">
@@ -154,7 +154,7 @@ const Overview = () => {
             <p className="text-sm font-bold text-[#0F172A]">Quick actions</p>
             <p className="text-xs text-[#94A3B8]">Jump straight to what you need</p>
           </div>
-          <button className="text-xs text-orange-500 font-semibold hover:underline">Customize →</button>
+          <button className="text-xs text-[#5b3256] font-semibold hover:underline">Customize →</button>
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           {QUICK_ACTIONS.map(a => <QuickAction key={a.label} {...a} />)}
@@ -175,7 +175,7 @@ const Overview = () => {
               <p className="text-xs text-[#94A3B8]">Hot dishes driving the lunch rush</p>
             </div>
             <button onClick={() => navigate('/dashboard/items')}
-              className="text-xs text-orange-500 font-semibold hover:underline">
+              className="text-xs text-[#5b3256] font-semibold hover:underline">
               Full menu
             </button>
           </div>
@@ -196,7 +196,7 @@ const Overview = () => {
               <p className="text-sm font-semibold text-[#0F172A]">No items yet</p>
               <p className="text-xs text-[#94A3B8] mb-4">Add items to see them here</p>
               <button onClick={() => navigate('/dashboard/items')}
-                className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+                className="flex items-center gap-1.5 bg-[#5b3256] hover:bg-[#4a2845] text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
                 <HiOutlinePlus size={13} /> Add item
               </button>
             </div>
@@ -210,7 +210,7 @@ const Overview = () => {
               <p className="text-sm font-bold text-[#0F172A]">Customers love it</p>
               <p className="text-xs text-[#94A3B8]">Latest 5★ reviews</p>
             </div>
-            <button className="text-xs text-orange-500 font-semibold hover:underline">All</button>
+            <button className="text-xs text-[#5b3256] font-semibold hover:underline">All</button>
           </div>
           {shop
             ? SAMPLE_REVIEWS.map(r => <ReviewCard key={r.name} {...r} />)
@@ -231,7 +231,7 @@ const Overview = () => {
           <p className="text-base font-bold text-[#0F172A] mb-1">Create your shop</p>
           <p className="text-sm text-[#94A3B8] mb-5">Set up your shop profile to start receiving orders</p>
           <button onClick={() => navigate('/dashboard/shop')}
-            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors">
+            className="flex items-center gap-2 bg-[#5b3256] hover:bg-[#4a2845] text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors">
             <HiOutlinePlus size={16} /> Create shop
           </button>
         </div>
@@ -289,7 +289,7 @@ const MenuItems = () => {
         subtitle={`${items.length} item${items.length !== 1 ? 's' : ''} on your menu`}
         action={
           <button onClick={() => { setEditing(null); setShowForm(true); }}
-            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm shadow-orange-200">
+            className="flex items-center gap-2 bg-[#5b3256] hover:bg-[#4a2845] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm shadow-[#d4aac8]/20">
             <HiOutlinePlus size={15} /> Add Item
           </button>
         }
@@ -314,9 +314,9 @@ const Settings = () => {
       {/* Profile card */}
       <div className="bg-white rounded-2xl border border-[#F0F0F4] overflow-hidden">
         <div className="h-16"
-          style={{ background: 'linear-gradient(160deg,#c75000 0%,#e8650a 40%,#f58020 100%)' }} />
+          style={{ background: 'linear-gradient(160deg,#3d1f3a 0%,#5b3256 60%,#7a4472 100%)' }} />
         <div className="px-6 pb-6 -mt-7">
-          <div className="w-14 h-14 rounded-2xl bg-orange-500 border-4 border-white flex items-center justify-center text-white text-xl font-bold overflow-hidden mb-3">
+          <div className="w-14 h-14 rounded-2xl bg-[#5b3256] border-4 border-white flex items-center justify-center text-white text-xl font-bold overflow-hidden mb-3">
             {user?.avatar ? <img src={user.avatar} alt="" className="w-full h-full object-cover" /> : initials}
           </div>
           <p className="text-base font-bold text-[#0F172A]">{user?.fullName}</p>
@@ -333,14 +333,14 @@ const Settings = () => {
           { icon: HiOutlineShieldCheck, label: 'Role',      value: user?.role     },
         ].map(({ icon: Icon, label, value }) => (
           <div key={label} className="flex items-center gap-4 px-5 py-4">
-            <div className="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center shrink-0">
-              <Icon size={15} className="text-orange-500" />
+            <div className="w-8 h-8 rounded-xl bg-[#f5eef4] flex items-center justify-center shrink-0">
+              <Icon size={15} className="text-[#5b3256]" />
             </div>
             <div className="flex-1">
               <p className="text-xs text-[#94A3B8]">{label}</p>
               <p className="text-sm font-semibold text-[#0F172A] mt-0.5">{value || '—'}</p>
             </div>
-            <button className="text-xs text-orange-500 font-semibold hover:underline">Edit</button>
+            <button className="text-xs text-[#5b3256] font-semibold hover:underline">Edit</button>
           </div>
         ))}
       </div>

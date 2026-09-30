@@ -7,7 +7,7 @@ const CARDS = (shop, itemCount) => [
     trend:   '+18.3%',
     trendUp: true,
     sub:     'vs yesterday',
-    bg:      'linear-gradient(135deg,#f58020 0%,#e8650a 100%)',
+    bg:      'linear-gradient(135deg,#5b3256 0%,#3d1f3a 100%)',
     iconBg:  'rgba(255,255,255,0.2)',
     icon:    '৳',
     textColor: 'white',
