@@ -110,7 +110,8 @@ const SignUp = () => {
     }));
     if (signUp.fulfilled.match(result)) {
       setSuccess(true);
-      setTimeout(() => navigate('/'), 1500);
+      const role = result.payload?.role;
+      setTimeout(() => navigate(role === 'owner' ? '/dashboard' : '/'), 1500);
     }
   };
 
@@ -131,7 +132,10 @@ const SignUp = () => {
         googleUid: uid,
         role: form.role,
       }));
-      if (googleSignIn.fulfilled.match(action)) navigate('/');
+      if (googleSignIn.fulfilled.match(action)) {
+        const role = action.payload?.role;
+        navigate(role === 'owner' ? '/dashboard' : '/');
+      }
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') return;
     } finally {
